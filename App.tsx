@@ -133,7 +133,8 @@ const ProcessingOverlay: React.FC = () => {
 
 const App: React.FC = () => {
   const [view, setView] = useState<'home' | 'editor'>('home');
-  const [isInitializing, setIsInitializing] = useState(true);
+  const [editorLoading, setEditorLoading] = useState(false);
+  const [hasPlayedIntro, setHasPlayedIntro] = useState(false);
   const [files, setFiles] = useState<FileData[]>([]);
   const [draggedItemIndex, setDraggedItemIndex] = useState<number | null>(null);
   const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
@@ -143,13 +144,6 @@ const App: React.FC = () => {
     }
     return 'light';
   });
-
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setIsInitializing(false);
-    }, 1500);
-    return () => clearTimeout(timer);
-  }, []);
 
   useEffect(() => {
     if (theme === 'dark') {
@@ -192,6 +186,15 @@ const App: React.FC = () => {
     setLayoutConfig(defaultLayoutConfig);
     setProcessingState({ isProcessing: false, progress: 0, error: null });
     setOutputBlobs([]);
+  };
+
+  const handleStartEditor = () => {
+    setEditorLoading(true);
+    setView('editor');
+    // Simulate initial workspace load for the skeleton to appear
+    setTimeout(() => {
+      setEditorLoading(false);
+    }, 1200);
   };
 
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -265,12 +268,20 @@ const App: React.FC = () => {
     setTimeout(() => setShowToast(false), 3000);
   };
 
-  if (isInitializing) {
-    return <SkeletonLoader />;
+  if (view === 'home') {
+    return (
+      <HomePage 
+        onStart={handleStartEditor} 
+        theme={theme} 
+        setTheme={setTheme} 
+        hasPlayedIntro={hasPlayedIntro}
+        onIntroFinished={() => setHasPlayedIntro(true)}
+      />
+    );
   }
 
-  if (view === 'home') {
-    return <HomePage onStart={() => setView('editor')} theme={theme} setTheme={setTheme} />;
+  if (editorLoading) {
+    return <SkeletonLoader />;
   }
 
   return (

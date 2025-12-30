@@ -1,5 +1,4 @@
-
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import Button from './Button';
 import { 
   Zap, 
@@ -19,11 +18,88 @@ interface HomePageProps {
   onStart: () => void;
   theme: 'light' | 'dark';
   setTheme: (theme: 'light' | 'dark') => void;
+  hasPlayedIntro: boolean;
+  onIntroFinished: () => void;
 }
 
-const HomePage: React.FC<HomePageProps> = ({ onStart, theme, setTheme }) => {
+const HomePage: React.FC<HomePageProps> = ({ 
+  onStart, 
+  theme, 
+  setTheme, 
+  hasPlayedIntro, 
+  onIntroFinished 
+}) => {
+  // isHomeLoading controls if we are currently showing the intro sequence
+  const [isHomeLoading, setIsHomeLoading] = useState(!hasPlayedIntro);
+  const [isExiting, setIsExiting] = useState(false);
+
+  useEffect(() => {
+    // If we've already played the intro in this session, don't do anything
+    if (hasPlayedIntro) return;
+
+    // 1. Initial entrance duration (0 - 1800ms)
+    const exitTimer = setTimeout(() => {
+      setIsExiting(true);
+    }, 1800);
+
+    // 2. Completely remove loader after exit animation finishes (2600ms)
+    const removeTimer = setTimeout(() => {
+      setIsHomeLoading(false);
+      onIntroFinished(); // Mark as played in the parent state
+    }, 2600);
+
+    return () => {
+      clearTimeout(exitTimer);
+      clearTimeout(removeTimer);
+    };
+  }, [hasPlayedIntro, onIntroFinished]);
+
+  // Set up reveal animations only after the content is rendered
+  useEffect(() => {
+    if (isHomeLoading) return;
+
+    const observerOptions = {
+      threshold: 0.1,
+      rootMargin: '0px 0px -50px 0px'
+    };
+
+    const revealObserver = new IntersectionObserver((entries) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('visible');
+        }
+      });
+    }, observerOptions);
+
+    const revealElements = document.querySelectorAll('.reveal');
+    revealElements.forEach((el) => revealObserver.observe(el));
+
+    return () => {
+      revealElements.forEach((el) => revealObserver.unobserve(el));
+      revealObserver.disconnect();
+    };
+  }, [isHomeLoading]);
+
+  if (isHomeLoading) {
+    return (
+      <div className={`fixed inset-0 z-[100] bg-[var(--bg-main)] flex items-center justify-center transition-all duration-700 ${isExiting ? 'opacity-0 scale-95' : 'opacity-100'}`}>
+        <div className="relative flex items-center justify-center">
+          {/* Pulsing ring background that scales up and fades out */}
+          {!isExiting && (
+            <div className="absolute w-32 h-32 rounded-full border-2 border-indigo-500/40 animate-premium-pulse"></div>
+          )}
+          
+          {/* Logo with Entrance then Scale-Down Exit */}
+          <h1 className={`text-6xl font-medium tracking-tighter font-logo text-[var(--text-primary)] relative z-10 ${isExiting ? 'animate-logo-exit' : 'animate-logo-entrance'}`}>
+            Clarté
+          </h1>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="min-h-screen bg-[var(--bg-main)] text-[var(--text-primary)] font-sans selection:bg-indigo-100 dark:selection:bg-indigo-900/30 overflow-x-hidden">
+    <div className="min-h-screen bg-[var(--bg-main)] text-[var(--text-primary)] font-sans selection:bg-indigo-100 dark:selection:bg-indigo-900/30 overflow-x-hidden animate-in fade-in duration-1000">
       {/* Navbar */}
       <nav className="fixed top-0 w-full z-50 bg-[var(--bg-main)]/80 backdrop-blur-md border-b border-[var(--border-light)] px-6 md:px-12 h-16 flex items-center justify-between">
         <div className="flex items-center gap-2">
@@ -36,7 +112,7 @@ const HomePage: React.FC<HomePageProps> = ({ onStart, theme, setTheme }) => {
           >
             {theme === 'light' ? <Moon className="w-5 h-5" /> : <Sun className="w-5 h-5" />}
           </button>
-          <Button variant="primary" size="sm" onClick={onStart} className="rounded-full px-6">
+          <Button variant="primary" size="sm" onClick={onStart} className="rounded-full px-6 transition-transform hover:scale-105">
             Try Clarté
           </Button>
         </div>
@@ -49,28 +125,28 @@ const HomePage: React.FC<HomePageProps> = ({ onStart, theme, setTheme }) => {
           <div className="absolute bottom-20 left-10 w-80 h-80 bg-blue-400/20 blur-[100px] rounded-full"></div>
         </div>
 
-        <div className="max-w-4xl mx-auto text-center">
-          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-indigo-50 dark:bg-indigo-900/20 border border-indigo-100 dark:border-indigo-800/30 mb-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
+        <div className="max-w-4xl mx-auto text-center reveal">
+          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-indigo-50 dark:bg-indigo-900/20 border border-indigo-100 dark:border-indigo-800/30 mb-8">
             <Zap className="w-3.5 h-3.5 text-indigo-500" />
             <span className="text-[11px] font-bold uppercase tracking-[0.15em] text-indigo-600 dark:text-indigo-400">Precision PDF Enhancement</span>
           </div>
           
-          <h2 className="text-5xl md:text-7xl font-bold tracking-tight mb-8 leading-[1.05] animate-in fade-in slide-in-from-bottom-8 duration-700 delay-100">
+          <h2 className="text-5xl md:text-7xl font-bold tracking-tight mb-8 leading-[1.05]">
             Precision meets simplicity <br className="hidden md:block" /> in every page.
           </h2>
           
-          <p className="text-lg md:text-xl text-[var(--text-secondary)] mb-12 max-w-2xl mx-auto leading-relaxed animate-in fade-in slide-in-from-bottom-12 duration-700 delay-200">
+          <p className="text-lg md:text-xl text-[var(--text-secondary)] mb-12 max-w-2xl mx-auto leading-relaxed">
             The professional toolset for enhancing PDF readability and layout. Modify, merge, and export high-fidelity documents effortlessly, directly in your browser.
           </p>
           
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-4 animate-in fade-in slide-in-from-bottom-16 duration-700 delay-300">
-            <Button size="lg" onClick={onStart} className="rounded-full px-10 group min-w-[200px]">
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+            <Button size="lg" onClick={onStart} className="rounded-full px-10 group min-w-[200px] transition-transform hover:scale-105">
               Try Clarté
               <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
             </Button>
             <button 
               onClick={() => document.getElementById('features')?.scrollIntoView({ behavior: 'smooth' })}
-              className="px-8 py-3 text-sm font-bold uppercase tracking-[0.1em] text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-all"
+              className="px-8 py-3 text-sm font-bold uppercase tracking-[0.1em] text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-all hover:scale-105"
             >
               Explore Features
             </button>
@@ -82,7 +158,7 @@ const HomePage: React.FC<HomePageProps> = ({ onStart, theme, setTheme }) => {
       <section className="py-24 px-6 bg-[var(--bg-panel)] border-y border-[var(--border-light)]">
         <div className="max-w-6xl mx-auto">
           <div className="grid md:grid-cols-2 gap-20 items-center">
-            <div className="space-y-8">
+            <div className="space-y-8 reveal">
               <h3 className="text-3xl font-bold tracking-tight">Sophisticated tools, <br /> distilled for ease.</h3>
               <p className="text-[var(--text-secondary)] leading-relaxed">
                 Clarté handles the complexity of PDF manipulation so you don't have to. Whether it's normalizing colors for readability or synthesizing multi-page layouts, our engine processes every vector with absolute precision.
@@ -95,7 +171,7 @@ const HomePage: React.FC<HomePageProps> = ({ onStart, theme, setTheme }) => {
                   { icon: Cpu, text: 'Client-side processing for ultimate speed' },
                   { icon: ShieldCheck, text: 'Private by design — files never leave your device' },
                 ].map((item, i) => (
-                  <li key={i} className="flex items-center gap-3">
+                  <li key={i} className="flex items-center gap-3 transition-transform hover:translate-x-1">
                     <div className="flex-shrink-0 w-8 h-8 rounded-full bg-indigo-50 dark:bg-indigo-900/20 flex items-center justify-center text-indigo-500">
                       <item.icon className="w-4 h-4" />
                     </div>
@@ -105,7 +181,7 @@ const HomePage: React.FC<HomePageProps> = ({ onStart, theme, setTheme }) => {
               </ul>
             </div>
             
-            <div className="relative aspect-[4/3] rounded-[24px] overflow-hidden border border-[var(--border-light)] shadow-2xl bg-[var(--bg-main)]">
+            <div className="relative aspect-[4/3] rounded-[24px] overflow-hidden border border-[var(--border-light)] shadow-2xl bg-[var(--bg-main)] reveal">
               <div className="absolute inset-0 p-8 flex flex-col">
                 <div className="h-6 w-1/2 shimmer rounded mb-8 opacity-40"></div>
                 <div className="flex-1 border-2 border-dashed border-[var(--border-light)] rounded-[12px] flex items-center justify-center relative overflow-hidden">
@@ -135,7 +211,7 @@ const HomePage: React.FC<HomePageProps> = ({ onStart, theme, setTheme }) => {
       {/* Features Grid */}
       <section id="features" className="py-24 px-6">
         <div className="max-w-6xl mx-auto">
-          <div className="text-center mb-16">
+          <div className="text-center mb-16 reveal">
             <h3 className="text-[10px] font-bold uppercase tracking-[0.25em] text-indigo-500 mb-4">Core Capabilities</h3>
             <h4 className="text-4xl font-bold tracking-tight">Everything you need, <br /> exactly where you need it.</h4>
           </div>
@@ -173,7 +249,7 @@ const HomePage: React.FC<HomePageProps> = ({ onStart, theme, setTheme }) => {
                 icon: Sun
               }
             ].map((feature, i) => (
-              <div key={i} className="group p-8 rounded-[24px] bg-[var(--bg-panel)] border border-[var(--border-light)] hover:border-indigo-200 dark:hover:border-indigo-800 transition-all hover:shadow-xl hover:-translate-y-1">
+              <div key={i} className="reveal group p-8 rounded-[24px] bg-[var(--bg-panel)] border border-[var(--border-light)] hover:border-indigo-200 dark:hover:border-indigo-800 transition-all hover:shadow-xl hover:-translate-y-1">
                 <div className="w-12 h-12 rounded-xl bg-indigo-50 dark:bg-indigo-900/20 flex items-center justify-center text-indigo-500 mb-6 group-hover:scale-110 transition-transform">
                   <feature.icon className="w-5 h-5" />
                 </div>
@@ -187,13 +263,13 @@ const HomePage: React.FC<HomePageProps> = ({ onStart, theme, setTheme }) => {
 
       {/* Why Choose Section */}
       <section className="py-24 px-6 bg-[var(--bg-panel)] overflow-hidden">
-        <div className="max-w-4xl mx-auto text-center">
+        <div className="max-w-4xl mx-auto text-center reveal">
           <h3 className="text-3xl font-bold tracking-tight mb-8">Clarté isn't just another PDF tool. <br /> It's a focused creative environment.</h3>
           <p className="text-[var(--text-secondary)] leading-relaxed mb-16 max-w-2xl mx-auto">
             Traditional tools are bloated with features you'll never use. Clarté is designed for the high-frequency tasks you perform daily, optimized for the highest level of efficiency.
           </p>
           
-          <div className="flex flex-wrap justify-center gap-12 grayscale opacity-50">
+          <div className="flex flex-wrap justify-center gap-12 grayscale opacity-50 transition-all hover:grayscale-0 hover:opacity-100">
             <div className="flex items-center gap-2 font-logo text-xl">PDF.js Core</div>
             <div className="flex items-center gap-2 font-logo text-xl">React Flow</div>
             <div className="flex items-center gap-2 font-logo text-xl">Vector Synthesis</div>
@@ -203,7 +279,7 @@ const HomePage: React.FC<HomePageProps> = ({ onStart, theme, setTheme }) => {
 
       {/* CTA Section */}
       <section className="py-32 px-6">
-        <div className="max-w-4xl mx-auto rounded-[40px] bg-[var(--accent-bg)] p-12 md:p-24 text-center text-white relative overflow-hidden shadow-2xl">
+        <div className="max-w-4xl mx-auto rounded-[40px] bg-[var(--accent-bg)] p-12 md:p-24 text-center text-white relative overflow-hidden shadow-2xl reveal">
           <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 blur-[80px] rounded-full translate-x-1/2 -translate-y-1/2"></div>
           <div className="absolute bottom-0 left-0 w-64 h-64 bg-indigo-400/20 blur-[80px] rounded-full -translate-x-1/2 translate-y-1/2"></div>
           
@@ -218,7 +294,7 @@ const HomePage: React.FC<HomePageProps> = ({ onStart, theme, setTheme }) => {
             size="lg" 
             variant="secondary" 
             onClick={onStart} 
-            className="rounded-full px-12 bg-white text-indigo-600 hover:bg-indigo-50 border-none relative z-10 shadow-xl"
+            className="rounded-full px-12 bg-white text-indigo-600 hover:bg-indigo-50 border-none relative z-10 shadow-xl transition-transform hover:scale-105"
           >
             Start Editing Now
           </Button>
@@ -228,18 +304,18 @@ const HomePage: React.FC<HomePageProps> = ({ onStart, theme, setTheme }) => {
       {/* Footer */}
       <footer className="py-12 border-t border-[var(--border-light)] px-6">
         <div className="max-w-6xl mx-auto flex flex-col md:flex-row justify-between items-center gap-8">
-          <div className="flex flex-col items-center md:items-start">
+          <div className="flex flex-col items-center md:items-start reveal">
             <h2 className="text-xl font-medium tracking-tighter font-logo mb-2">Clarté</h2>
             <p className="text-xs text-[var(--text-muted)] uppercase tracking-widest">Precision PDF Tooling</p>
           </div>
           
-          <div className="flex items-center gap-8 text-[11px] font-bold uppercase tracking-widest text-[var(--text-secondary)]">
+          <div className="flex items-center gap-8 text-[11px] font-bold uppercase tracking-widest text-[var(--text-secondary)] reveal">
             <a href="#" className="hover:text-[var(--text-primary)] transition-colors">Privacy</a>
             <a href="#" className="hover:text-[var(--text-primary)] transition-colors">Github</a>
             <a href="#" className="hover:text-[var(--text-primary)] transition-colors">Documentation</a>
           </div>
           
-          <p className="text-[10px] text-[var(--text-muted)]">
+          <p className="text-[10px] text-[var(--text-muted)] reveal">
             &copy; {new Date().getFullYear()} Clarté Labs. All rights reserved.
           </p>
         </div>
