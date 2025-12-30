@@ -400,8 +400,8 @@ const App: React.FC = () => {
           ) : (
             <div className="flex flex-col items-center justify-center min-h-[60vh] animate-in fade-in zoom-in-95 duration-700">
               <div className="max-w-xl w-full flex flex-col items-center text-center p-12 bg-[var(--bg-panel)] rounded-[24px] border border-[var(--border-light)] shadow-sm">
-                <h2 className="text-[48px] font-normal font-logo mb-3 text-[var(--text-primary)] tracking-tighter leading-tight">
-                  Clarté
+                <h2 className="text-[48px] font-bold font-logo mb-3 text-[var(--text-primary)] tracking-tighter leading-tight">
+                  Downloads Ready
                 </h2>
                 
                 <p className="text-[13px] font-medium text-[var(--text-muted)] mb-14 tracking-wide uppercase opacity-70">
