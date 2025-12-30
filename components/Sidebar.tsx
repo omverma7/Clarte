@@ -1,21 +1,17 @@
-
 import React, { useState, useEffect } from 'react';
 import { TransformationType, TransformationConfig, LayoutPagesPerSheet, LayoutOrientation, LayoutFlow, LayoutValue, FileData } from '../types';
 import { 
   Layers, 
   Check,
-  ChevronUp,
-  ChevronDown,
   Monitor,
   Smartphone,
   Zap,
   LayoutTemplate,
   Grid,
-  Maximize,
-  X,
   Plus,
   Minus,
-  Files
+  Files,
+  GripVertical
 } from 'lucide-react';
 import Button from './Button';
 
@@ -45,6 +41,8 @@ const Sidebar: React.FC<SidebarProps> = ({
   onClose
 }) => {
   const [displaySpacing, setDisplaySpacing] = useState<string>(layoutConfig.spacingMm.toString());
+  const [draggedPipeIndex, setDraggedPipeIndex] = useState<number | null>(null);
+  const [pipeDragOverIndex, setPipeDragOverIndex] = useState<number | null>(null);
 
   useEffect(() => {
     setDisplaySpacing(layoutConfig.spacingMm.toString());
@@ -54,22 +52,38 @@ const Sidebar: React.FC<SidebarProps> = ({
     setPipeline(pipeline.map(t => t.id === id ? { ...t, enabled: !t.enabled } : t));
   };
 
-  const moveUp = (index: number) => {
-    if (index === 0) return;
-    const newPipeline = [...pipeline];
-    const temp = newPipeline[index];
-    newPipeline[index] = newPipeline[index - 1];
-    newPipeline[index - 1] = temp;
-    setPipeline(newPipeline);
+  // Drag and Drop Logic
+  const handlePipeDragStart = (e: React.DragEvent, index: number) => {
+    setDraggedPipeIndex(index);
+    e.dataTransfer.effectAllowed = 'move';
+    // Firefox requires data to be set to start a drag
+    e.dataTransfer.setData('text/plain', index.toString());
   };
 
-  const moveDown = (index: number) => {
-    if (index === pipeline.length - 1) return;
+  const handlePipeDragEnd = () => {
+    setDraggedPipeIndex(null);
+    setPipeDragOverIndex(null);
+  };
+
+  const handlePipeDragOver = (e: React.DragEvent, index: number) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+    if (pipeDragOverIndex !== index) {
+      setPipeDragOverIndex(index);
+    }
+  };
+
+  const handlePipeDrop = (e: React.DragEvent, index: number) => {
+    e.preventDefault();
+    if (draggedPipeIndex === null || draggedPipeIndex === index) return;
+    
     const newPipeline = [...pipeline];
-    const temp = newPipeline[index];
-    newPipeline[index] = newPipeline[index + 1];
-    newPipeline[index + 1] = temp;
+    const [movedItem] = newPipeline.splice(draggedPipeIndex, 1);
+    newPipeline.splice(index, 0, movedItem);
+    
     setPipeline(newPipeline);
+    setDraggedPipeIndex(null);
+    setPipeDragOverIndex(null);
   };
 
   const updateLayout = (updates: Partial<LayoutValue>) => {
@@ -85,13 +99,6 @@ const Sidebar: React.FC<SidebarProps> = ({
     const finalVal = isNaN(val) || val < 1 ? 1 : val;
     setDisplaySpacing(finalVal.toString());
     updateLayout({ spacingMm: finalVal });
-  };
-
-  const handleSpacingKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === 'Enter') {
-      handleSpacingBlur();
-      (e.target as HTMLInputElement).blur();
-    }
   };
 
   const adjustSpacing = (amount: number) => {
@@ -110,17 +117,17 @@ const Sidebar: React.FC<SidebarProps> = ({
     { value: 'COLUMN', label: 'Col Flow', icon: <Grid className="w-3 h-3" /> },
   ];
 
-  const sidebarClasses = `
-    fixed top-16 bottom-0 left-0 z-40 w-80 bg-[var(--bg-panel)] border-r border-[var(--border-light)] p-8 flex flex-col overflow-y-auto transform transition-transform duration-300 ease-in-out
-    md:relative md:top-0 md:translate-x-0
-    ${isOpen ? 'translate-x-0 shadow-2xl' : '-translate-x-full'}
-  `;
+  const getOptionBtnClass = (isActive: boolean) => 
+    `w-full flex items-center justify-center gap-2 py-2 border rounded-[6px] text-[10px] font-bold uppercase tracking-wider transition-all duration-200 border 
+     ${isActive 
+       ? 'bg-[var(--accent-bg)] text-[var(--accent-text)] border-[var(--accent-bg)] shadow-md' 
+       : 'bg-[var(--bg-sub)] border-transparent text-[var(--text-secondary)] hover:bg-[var(--border-light)] active:bg-[var(--border-medium)]'}`;
 
   const getToggleClass = (isActive: boolean) => 
-    `w-full flex items-center justify-center gap-2 px-2.5 py-2.5 border rounded-[6px] text-[10px] transition-all duration-200 
+    `w-full flex items-center justify-start gap-3 px-3 py-2.5 border rounded-[6px] text-[10px] font-bold uppercase tracking-wider transition-all duration-200 
      ${isActive 
-       ? 'bg-[var(--accent-bg)] text-[var(--accent-text)] border-[var(--accent-bg)] hover:opacity-90 active:scale-[0.98] shadow-lg' 
-       : 'bg-[var(--bg-sub)] border-[var(--border-light)] text-[var(--text-secondary)] hover:border-[var(--border-medium)] hover:bg-[var(--border-light)] active:bg-[var(--border-medium)]'}`;
+       ? 'bg-[var(--accent-bg)] text-[var(--accent-text)] border-[var(--accent-bg)] shadow-md' 
+       : 'bg-[var(--bg-sub)] border-transparent text-[var(--text-secondary)] hover:bg-[var(--border-light)] active:bg-[var(--border-medium)]'}`;
 
   return (
     <>
@@ -131,7 +138,7 @@ const Sidebar: React.FC<SidebarProps> = ({
         />
       )}
 
-      <aside className={sidebarClasses}>
+      <aside className={`fixed top-16 bottom-0 left-0 z-40 w-80 bg-[var(--bg-panel)] border-r border-[var(--border-light)] p-8 flex flex-col overflow-y-auto transform transition-transform duration-300 md:relative md:top-0 md:translate-x-0 ${isOpen ? 'translate-x-0 shadow-2xl' : '-translate-x-full'}`}>
         <div className="flex-1 space-y-10">
           <section>
             <div className="flex items-center gap-2.5 mb-6">
@@ -142,8 +149,8 @@ const Sidebar: React.FC<SidebarProps> = ({
               onClick={() => updateLayout({ mergeFiles: !layoutConfig.mergeFiles })}
               className={getToggleClass(layoutConfig.mergeFiles)}
             >
-              <Plus className={`w-3 h-3 transition-transform ${layoutConfig.mergeFiles ? 'rotate-45' : ''}`} />
-              <span className="font-semibold tracking-[0.05em]">
+              <Plus className={`w-3.5 h-3.5 transition-transform ${layoutConfig.mergeFiles ? 'rotate-45' : ''}`} />
+              <span>
                 {layoutConfig.mergeFiles ? "Merge PDF's Active" : "Merge PDF's Inactive"}
               </span>
             </button>
@@ -158,11 +165,24 @@ const Sidebar: React.FC<SidebarProps> = ({
             <div className="space-y-4">
               {pipeline.map((t, index) => (
                 <div 
-                  key={t.id} 
-                  className={`group border rounded-[8px] p-4 transition-all duration-300 ${t.enabled ? 'border-[var(--border-medium)] bg-[var(--bg-sub)] shadow-md' : 'border-[var(--border-light)] bg-[var(--bg-panel)] opacity-50'}`}
+                  key={t.id}
+                  draggable
+                  onDragStart={(e) => handlePipeDragStart(e, index)}
+                  onDragEnd={handlePipeDragEnd}
+                  onDragOver={(e) => handlePipeDragOver(e, index)}
+                  onDrop={(e) => handlePipeDrop(e, index)}
+                  className={`group rounded-[10px] overflow-hidden transition-all duration-300 border ${
+                    draggedPipeIndex === index ? 'opacity-40 grayscale' : 
+                    pipeDragOverIndex === index ? 'border-blue-500 scale-[1.02] bg-blue-50/10' : 
+                    t.enabled ? 'border-blue-400 bg-[var(--bg-panel)] shadow-sm' : 'border-transparent'
+                  }`}
                 >
-                  <div className="flex items-center justify-between mb-2">
-                    <label className="flex items-center gap-3 cursor-pointer group/toggle select-none">
+                  <div className={`flex items-center gap-3 p-3 transition-colors ${!t.enabled ? 'bg-[var(--bg-sub)] rounded-[6px]' : ''}`}>
+                    <div className="flex-shrink-0 cursor-grab active:cursor-grabbing text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors">
+                      <GripVertical className="w-3.5 h-3.5" />
+                    </div>
+                    
+                    <label className="flex items-center gap-3 cursor-pointer group/toggle select-none w-full">
                       <input 
                         type="checkbox" 
                         className="sr-only" 
@@ -170,39 +190,28 @@ const Sidebar: React.FC<SidebarProps> = ({
                         onChange={() => toggleTransformation(t.id)}
                       />
                       <div 
-                        className={`w-4 h-4 border rounded-[4px] flex items-center justify-center transition-all ${t.enabled ? 'bg-[var(--accent-bg)] border-[var(--accent-bg)]' : 'border-[var(--border-medium)] bg-[var(--bg-panel)]'}`}
+                        className={`w-4 h-4 border rounded-[4px] flex items-center justify-center transition-all ${t.enabled ? 'bg-[var(--accent-bg)] border-[var(--accent-bg)]' : 'border-[var(--border-medium)] bg-white'}`}
                       >
                         {t.enabled && <Check className="w-2.5 h-2.5 text-[var(--accent-text)]" />}
                       </div>
-                      <span className="text-xs font-medium text-[var(--text-primary)] transition-colors">
+                      <span className={`text-[11px] font-bold uppercase tracking-wider transition-colors ${t.enabled ? 'text-[var(--text-primary)]' : 'text-[var(--text-muted)]'}`}>
                         {t.type === TransformationType.INVERT && 'Invert Colors'}
                         {t.type === TransformationType.GRAYSCALE && 'Grayscale'}
                         {t.type === TransformationType.LAYOUT && 'Page Layout'}
                       </span>
                     </label>
-                    <div className="flex items-center gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity">
-                      <button onClick={() => moveUp(index)} className="p-1 text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors" aria-label="Move Up">
-                        <ChevronUp className="w-3 h-3" />
-                      </button>
-                      <button onClick={() => moveDown(index)} className="p-1 text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors" aria-label="Move Down">
-                        <ChevronDown className="w-3 h-3" />
-                      </button>
-                    </div>
                   </div>
                   
                   {t.type === TransformationType.LAYOUT && t.enabled && (
-                    <div className="mt-4 pt-4 border-t border-[var(--border-light)] space-y-5">
+                    <div className="p-4 pt-4 border-t border-[var(--border-light)] space-y-6 bg-white dark:bg-[var(--bg-panel)]">
                       <div>
-                        <span className="text-[9px] font-semibold uppercase tracking-wider text-[var(--text-muted)] mb-2.5 block">Density</span>
+                        <span className="text-[9px] font-bold uppercase tracking-wider text-[var(--text-muted)] mb-3 block">Density</span>
                         <div className="grid grid-cols-3 gap-2">
                           {pgsOptions.map((opt) => (
                             <button
                               key={opt}
                               onClick={() => updateLayout({ pagesPerSheet: opt })}
-                              className={`text-[10px] py-1.5 border rounded-[6px] transition-all duration-200 
-                                ${layoutConfig.pagesPerSheet === opt 
-                                  ? 'bg-[var(--accent-bg)] text-[var(--accent-text)] border-[var(--accent-bg)] shadow-md' 
-                                  : 'bg-[var(--bg-panel)] border-[var(--border-light)] text-[var(--text-secondary)] hover:border-[var(--border-medium)] hover:bg-[var(--bg-sub)] active:bg-[var(--border-medium)]'}`}
+                              className={getOptionBtnClass(layoutConfig.pagesPerSheet === opt)}
                             >
                               {opt} {opt === 1 ? 'PG' : 'PGS'}
                             </button>
@@ -211,32 +220,32 @@ const Sidebar: React.FC<SidebarProps> = ({
                       </div>
 
                       <div className="grid grid-cols-2 gap-4">
-                        <div>
-                          <span className="text-[9px] font-semibold uppercase tracking-wider text-[var(--text-muted)] mb-2.5 block">Orientation</span>
+                        <div className="space-y-3">
+                          <span className="text-[9px] font-bold uppercase tracking-wider text-[var(--text-muted)] block">Orientation</span>
                           <div className="space-y-2">
                             {orientationOptions.map((opt) => (
                               <button
                                 key={opt.value}
                                 onClick={() => updateLayout({ orientation: opt.value })}
-                                className={getToggleClass(layoutConfig.orientation === opt.value)}
+                                className={getOptionBtnClass(layoutConfig.orientation === opt.value)}
                               >
                                 {opt.icon}
-                                {opt.label}
+                                <span className="text-[9px]">{opt.label}</span>
                               </button>
                             ))}
                           </div>
                         </div>
-                        <div>
-                          <span className="text-[9px] font-semibold uppercase tracking-wider text-[var(--text-muted)] mb-2.5 block">Ordering</span>
+                        <div className="space-y-3">
+                          <span className="text-[9px] font-bold uppercase tracking-wider text-[var(--text-muted)] block">Ordering</span>
                           <div className="space-y-2">
                             {flowOptions.map((opt) => (
                               <button
                                 key={opt.value}
                                 onClick={() => updateLayout({ flow: opt.value })}
-                                className={getToggleClass(layoutConfig.flow === opt.value)}
+                                className={getOptionBtnClass(layoutConfig.flow === opt.value)}
                               >
                                 {opt.icon}
-                                {opt.label}
+                                <span className="text-[9px]">{opt.label}</span>
                               </button>
                             ))}
                           </div>
@@ -244,99 +253,50 @@ const Sidebar: React.FC<SidebarProps> = ({
                       </div>
 
                       <div>
-                        <span className="text-[9px] font-semibold uppercase tracking-wider text-[var(--text-muted)] mb-2.5 block flex items-center gap-2">
-                          <Maximize className="w-2.5 h-2.5" />
+                        <span className="text-[9px] font-bold uppercase tracking-wider text-[var(--text-muted)] mb-3 block flex items-center gap-2">
                           Spacing (mm)
                         </span>
                         
-                        <div className="flex items-center border border-[var(--border-light)] bg-[var(--bg-panel)] rounded-[6px] overflow-hidden focus-within:border-[var(--text-primary)] focus-within:bg-[var(--bg-panel)] transition-all">
-                          <button 
-                            onClick={() => adjustSpacing(-0.5)}
-                            className="p-2.5 text-[var(--text-secondary)] hover:bg-[var(--bg-sub)] hover:text-[var(--text-primary)] active:bg-[var(--border-medium)] transition-colors border-r border-[var(--border-light)]"
-                            title="Decrease spacing"
-                          >
-                            <Minus className="w-3 h-3" />
+                        <div className="flex items-center border border-[var(--border-light)] bg-[var(--bg-sub)] rounded-[8px] p-1">
+                          <button onClick={() => adjustSpacing(-1)} className="p-2 text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors">
+                            <Minus className="w-3.5 h-3.5" />
                           </button>
-                          
                           <input 
                             type="number" 
-                            min="1" 
-                            step="0.5"
                             value={displaySpacing}
                             onChange={handleSpacingChange}
                             onBlur={handleSpacingBlur}
-                            onKeyDown={handleSpacingKeyDown}
-                            className="w-full bg-transparent text-[11px] font-bold text-center text-[var(--text-primary)] outline-none py-2"
+                            className="w-full bg-transparent text-[11px] font-bold text-center text-[var(--text-primary)] outline-none"
                           />
-                          
-                          <button 
-                            onClick={() => adjustSpacing(0.5)}
-                            className="p-2.5 text-[var(--text-secondary)] hover:bg-[var(--bg-sub)] hover:text-[var(--text-primary)] active:bg-[var(--border-medium)] transition-colors border-l border-[var(--border-light)]"
-                            title="Increase spacing"
-                          >
-                            <Plus className="w-3 h-3" />
+                          <button onClick={() => adjustSpacing(1)} className="p-2 text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors">
+                            <Plus className="w-3.5 h-3.5" />
                           </button>
                         </div>
                       </div>
 
-                      <div className="pt-1">
-                        <button
-                          onClick={() => updateLayout({ showBorders: !layoutConfig.showBorders })}
-                          className={getToggleClass(layoutConfig.showBorders)}
-                          aria-pressed={layoutConfig.showBorders}
-                        >
-                          <span className="font-semibold uppercase tracking-widest">Page Borders</span>
-                        </button>
-                      </div>
+                      <button
+                        onClick={() => updateLayout({ showBorders: !layoutConfig.showBorders })}
+                        className={`w-full py-3 rounded-[10px] text-[10px] font-bold uppercase tracking-widest transition-all ${layoutConfig.showBorders ? 'bg-[var(--accent-bg)] text-[var(--accent-text)]' : 'bg-[var(--bg-sub)] text-[var(--text-muted)] hover:bg-[var(--border-light)]'}`}
+                      >
+                        Page Borders
+                      </button>
                     </div>
                   )}
                 </div>
               ))}
             </div>
           </section>
-
-          <section className="bg-[var(--bg-sub)] border border-[var(--border-light)] p-5 rounded-[8px]">
-            <h3 className="text-[9px] font-bold uppercase tracking-[0.2em] text-[var(--text-muted)] mb-4">Summary</h3>
-            <div className="space-y-2.5 text-[11px]">
-              <div className="flex justify-between items-center">
-                <span className="text-[var(--text-secondary)]">Files Detected</span>
-                <span className="font-medium text-[var(--text-primary)]">{hasFiles ? files.length : 0}</span>
-              </div>
-              <div className="flex justify-between items-center">
-                <span className="text-[var(--text-secondary)]">Merge Mode</span>
-                <span className="font-medium text-[var(--text-primary)]">{layoutConfig.mergeFiles ? 'Active' : 'Individual'}</span>
-              </div>
-              <div className="flex justify-between items-center">
-                <span className="text-[var(--text-secondary)]">Steps Active</span>
-                <span className="font-medium text-[var(--text-primary)]">{pipeline.filter(p => p.enabled).length}</span>
-              </div>
-              <div className="flex justify-between items-center">
-                <span className="text-[var(--text-secondary)]">Sheet Density</span>
-                <span className="font-medium text-[var(--text-primary)]">{layoutConfig.pagesPerSheet} pg/sheet</span>
-              </div>
-            </div>
-          </section>
         </div>
 
-        <div className="mt-12 space-y-4">
+        <div className="mt-10 pt-6">
           <Button 
-            className="w-full" 
-            onClick={() => {
-              onProcess();
-              if (onClose) onClose();
-            }} 
+            className="w-full py-4 rounded-[14px] text-[11px] font-bold uppercase tracking-[0.2em] shadow-lg shadow-blue-500/10" 
+            onClick={onProcess} 
             isLoading={isProcessing}
             disabled={!hasFiles}
           >
             {isProcessing ? 'Processing' : 'Render Document'}
           </Button>
-          <div className="flex items-center justify-center gap-2">
-            <span className="h-[1px] w-4 bg-[var(--border-light)]"></span>
-            <p className="text-[9px] text-center text-[var(--text-muted)] uppercase tracking-[0.2em] font-medium">
-              300 DPI Rendering
-            </p>
-            <span className="h-[1px] w-4 bg-[var(--border-light)]"></span>
-          </div>
         </div>
       </aside>
     </>

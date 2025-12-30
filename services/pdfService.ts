@@ -1,4 +1,3 @@
-
 import * as pdfLib from 'pdf-lib';
 import * as pdfjsLib from 'pdfjs-dist';
 import { TransformationType, TransformationConfig, LayoutValue, LayoutOrientation, LayoutFlow, LayoutPagesPerSheet } from '../types';
@@ -47,13 +46,9 @@ export async function renderPageToCanvas(
 }
 
 /**
- * Applies visual filters (Invert, Grayscale) to a canvas.
+ * Applies Invert filter to a canvas.
  */
-export function applyFilters(
-  canvas: HTMLCanvasElement,
-  invert: boolean,
-  grayscale: boolean
-): HTMLCanvasElement {
+export function applyInvert(canvas: HTMLCanvasElement): HTMLCanvasElement {
   const context = canvas.getContext('2d');
   if (!context) return canvas;
 
@@ -63,24 +58,30 @@ export function applyFilters(
   const data = imageData.data;
 
   for (let i = 0; i < data.length; i += 4) {
-    let r = data[i];
-    let g = data[i + 1];
-    let b = data[i + 2];
+    data[i] = 255 - data[i];
+    data[i + 1] = 255 - data[i + 1];
+    data[i + 2] = 255 - data[i + 2];
+  }
 
-    if (grayscale) {
-      const gray = 0.299 * r + 0.587 * g + 0.114 * b;
-      r = g = b = gray;
-    }
+  context.putImageData(imageData, 0, 0);
+  return canvas;
+}
 
-    if (invert) {
-      r = 255 - r;
-      g = 255 - g;
-      b = 255 - b;
-    }
+/**
+ * Applies Grayscale filter to a canvas.
+ */
+export function applyGrayscale(canvas: HTMLCanvasElement): HTMLCanvasElement {
+  const context = canvas.getContext('2d');
+  if (!context) return canvas;
 
-    data[i] = r;
-    data[i + 1] = g;
-    data[i + 2] = b;
+  const width = canvas.width;
+  const height = canvas.height;
+  const imageData = context.getImageData(0, 0, width, height);
+  const data = imageData.data;
+
+  for (let i = 0; i < data.length; i += 4) {
+    const gray = 0.299 * data[i] + 0.587 * data[i + 1] + 0.114 * data[i + 2];
+    data[i] = data[i + 1] = data[i + 2] = gray;
   }
 
   context.putImageData(imageData, 0, 0);
@@ -144,27 +145,29 @@ async function processCanvasGroup(
 ): Promise<Uint8Array> {
   const mergedPdf = await pdfLib.PDFDocument.create();
   
+  // Identify the position of the layout operation to partition the pipeline
   const layoutIdx = pipeline.findIndex(t => t.type === TransformationType.LAYOUT);
-  const invertConfig = pipeline.find(t => t.type === TransformationType.INVERT);
-  const grayscaleConfig = pipeline.find(t => t.type === TransformationType.GRAYSCALE);
+  const preLayoutTransforms = pipeline.slice(0, layoutIdx);
+  const postLayoutTransforms = pipeline.slice(layoutIdx + 1);
 
-  const applyToIndividual = (canvas: HTMLCanvasElement) => {
-    const preInvert = pipeline.findIndex(t => t.type === TransformationType.INVERT) < layoutIdx && invertConfig?.enabled;
-    const preGrayscale = pipeline.findIndex(t => t.type === TransformationType.GRAYSCALE) < layoutIdx && grayscaleConfig?.enabled;
-    return applyFilters(canvas, !!preInvert, !!preGrayscale);
-  };
-
-  const applyToSheet = (canvas: HTMLCanvasElement) => {
-    const postInvert = pipeline.findIndex(t => t.type === TransformationType.INVERT) > layoutIdx && invertConfig?.enabled;
-    const postGrayscale = pipeline.findIndex(t => t.type === TransformationType.GRAYSCALE) > layoutIdx && grayscaleConfig?.enabled;
-    return applyFilters(canvas, !!postInvert, !!postGrayscale);
+  const applyTransforms = (canvas: HTMLCanvasElement, transforms: TransformationConfig[]) => {
+    let currentCanvas = canvas;
+    for (const t of transforms) {
+      if (!t.enabled) continue;
+      if (t.type === TransformationType.INVERT) {
+        currentCanvas = applyInvert(currentCanvas);
+      } else if (t.type === TransformationType.GRAYSCALE) {
+        currentCanvas = applyGrayscale(currentCanvas);
+      }
+    }
+    return currentCanvas;
   };
 
   const { pagesPerSheet, orientation, flow, showBorders, spacingMm } = layoutConfig;
   const spacingPx = spacingMm * PTS_PER_MM * SCALE_FACTOR;
 
   for (let i = 0; i < allCanvases.length; i += pagesPerSheet) {
-    const chunk = allCanvases.slice(i, i + pagesPerSheet).map(applyToIndividual);
+    const chunk = allCanvases.slice(i, i + pagesPerSheet).map(canvas => applyTransforms(canvas, preLayoutTransforms));
     let isLandscape = false;
 
     if (orientation === 'LANDSCAPE') {
@@ -252,7 +255,7 @@ async function processCanvasGroup(
       drawnRects.push({ x: finalX, y: finalY, w: drawW, h: drawH });
     });
 
-    const filteredSheet = applyToSheet(sheetCanvas);
+    const filteredSheet = applyTransforms(sheetCanvas, postLayoutTransforms);
     if (showBorders) {
       const fCtx = filteredSheet.getContext('2d')!;
       fCtx.strokeStyle = '#18181B';

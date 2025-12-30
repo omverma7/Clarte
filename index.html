@@ -7,23 +7,23 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Playfair+Display:ital,wght@0,400..900;1,400..900&display=swap" rel="stylesheet">
     <style>
         :root {
-            /* --- Google Light Theme --- */
-            --bg-main: #F8F9FA;         /* Google background grey */
-            --bg-panel: #FFFFFF;        /* Pure white for the main workspace */
-            --bg-sub: #F1F3F4;          /* Hover states and secondary sidebars */
+            /* --- Light Theme --- */
+            --bg-main: #F9FAFB;         
+            --bg-panel: #FFFFFF;        
+            --bg-sub: #F1F3F4;          
             
-            --text-primary: #202124;    /* Standard Google text black */
-            --text-secondary: #5F6368;  /* Subtle description text */
-            --text-muted: #70757A;      /* Icon and placeholder color */
+            --text-primary: #1A1A1A;    
+            --text-secondary: #5F6368;  
+            --text-muted: #70757A;      
             
-            --border-light: #F1F3F4;    /* Very soft separation */
-            --border-medium: #DADCE0;   /* Standard Google input/card border */
+            --border-light: #F1F3F4;    
+            --border-medium: #DADCE0;   
             
-            --accent-bg: #1A73E8;       /* Primary Google Blue */
-            --accent-hover: #1765CC;    /* Slightly darker blue for hover */
+            --accent-bg: #1A73E8;       
+            --accent-hover: #1765CC;    
             --accent-text: #FFFFFF;
             
             --shadow: 0 1px 2px 0 rgba(60,64,67,.3), 0 1px 3px 1px rgba(60,64,67,.15);
@@ -34,21 +34,21 @@
         }
 
         html.dark {
-            /* --- Google Dark Theme (Material 3) --- */
-            --bg-main: #202124;         /* Google Dark background */
-            --bg-panel: #2D2E31;        /* Elevated surface (cards/sidebar) */
-            --bg-sub: #35363A;          /* Active/Hover states */
+            /* --- Dark Theme --- */
+            --bg-main: #0E1117;         
+            --bg-panel: #161B22;        
+            --bg-sub: #21262D;          
             
-            --text-primary: #E8EAED;    /* Soft white for readability */
-            --text-secondary: #9AA0A6;  /* Dimmed grey text */
-            --text-muted: #80868B;      /* De-emphasized text/icons */
+            --text-primary: #F0F6FC;    
+            --text-secondary: #8B949E;  
+            --text-muted: #484F58;      
             
-            --border-light: #3C4043;    /* Subtle dark border */
-            --border-medium: #5F6368;   /* Interactive element borders */
+            --border-light: #30363D;    
+            --border-medium: #484F58;   
             
-            --accent-bg: #8AB4F8;       /* Google Blue 200 (Better for dark mode) */
-            --accent-hover: #7BA4E8;    /* Slightly adjusted for dark mode hover */
-            --accent-text: #202124;     /* Dark text on light blue accent */
+            --accent-bg: #58A6FF;       
+            --accent-hover: #1F6FEB;    
+            --accent-text: #ffffff;
             
             --shadow: 0 1px 3px 0 rgba(0,0,0,.3), 0 4px 8px 3px rgba(0,0,0,.15);
             --overlay: rgba(255, 255, 255, 0.08);
@@ -106,9 +106,7 @@
         .custom-shadow {
             box-shadow: var(--shadow);
         }
-        .premium-border {
-            border: 1px solid var(--border-light);
-        }
+        
         .glass {
             background: var(--bg-panel);
             opacity: 0.85;
@@ -123,6 +121,9 @@
         }
         .font-designer {
             font-family: 'Plus Jakarta Sans', sans-serif;
+        }
+        .font-logo {
+            font-family: 'Playfair Display', serif;
         }
 
         /* Rendering Animations */

@@ -19,11 +19,11 @@ import {
   Check,
   GripVertical,
   RotateCcw,
-  FileCheck,
   Cpu,
   Layers as LayersIcon,
   Sun,
-  Moon
+  Moon,
+  Briefcase
 } from 'lucide-react';
 
 const SkeletonLoader: React.FC = () => (
@@ -31,7 +31,7 @@ const SkeletonLoader: React.FC = () => (
     {/* Header Skeleton */}
     <nav className="flex-shrink-0 bg-[var(--bg-panel)] z-50 border-b border-[var(--border-light)] h-16 flex items-center justify-between px-6 md:px-10">
       <div className="flex items-center gap-4">
-        <div className="w-24 h-6 shimmer rounded"></div>
+        <div className="w-24 h-8 shimmer rounded"></div>
       </div>
       <div className="w-10 h-10 shimmer rounded-full"></div>
     </nav>
@@ -55,7 +55,8 @@ const SkeletonLoader: React.FC = () => (
 
       {/* Main Content Skeleton */}
       <main className="flex-1 p-6 md:p-16">
-        <div className="max-w-4xl mx-auto">
+        <div className="max-w-4xl mx-auto space-y-8">
+          <div className="w-full h-20 shimmer rounded-xl"></div>
           <div className="w-full aspect-[2/1] shimmer rounded-[12px] border-2 border-dashed border-[var(--border-light)] flex flex-col items-center justify-center p-20">
             <div className="w-16 h-16 shimmer rounded-full mb-6"></div>
             <div className="w-48 h-6 shimmer mb-3"></div>
@@ -274,9 +275,10 @@ const App: React.FC = () => {
           <button onClick={() => setIsMenuOpen(!isMenuOpen)} className="md:hidden p-1.5 text-[var(--text-secondary)]">
             <Menu className="w-5 h-5" />
           </button>
-          <div className="flex flex-col cursor-pointer select-none" onClick={resetApp}>
-            <h1 className="text-lg font-bold tracking-[0.05em] uppercase font-designer leading-none">Clarté</h1>
-            <p className="text-[8px] tracking-[0.25em] font-extrabold uppercase text-[var(--text-muted)] mt-1.5">Precision PDF Tool</p>
+          <div className="flex flex-col cursor-pointer select-none group" onClick={resetApp}>
+            <h1 className="text-3xl font-medium tracking-tight font-logo leading-none text-[var(--text-primary)] transition-all group-hover:opacity-70">
+              Clarté
+            </h1>
           </div>
         </div>
         <div className="flex items-center gap-4">
@@ -303,74 +305,125 @@ const App: React.FC = () => {
           onClose={() => setIsMenuOpen(false)}
         />
 
-        <main className="flex-1 overflow-y-auto p-6 md:p-16">
+        <main className="flex-1 overflow-y-auto p-6 md:p-10 lg:p-16">
           {processingState.error && (
             <div className="mb-8 p-4 bg-red-900/10 border border-red-900/30 text-red-500 text-sm flex items-center gap-4 rounded-[8px]">
-              <Info className="w-4 h-4" />
-              {processingState.error}
+              <div className="flex-shrink-0">
+                <Info className="w-4 h-4" />
+              </div>
+              <div>{processingState.error}</div>
             </div>
           )}
 
           {outputBlobs.length === 0 && !processingState.isProcessing ? (
-            <div className="max-w-4xl mx-auto">
+            <div className="max-w-4xl mx-auto space-y-10">
+              {/* Workspace Status Panel */}
+              <div className="bg-[var(--bg-panel)] border border-[var(--border-light)] rounded-[14px] p-5 flex items-center justify-between shadow-sm">
+                <div className="flex items-center gap-4">
+                  <div className="w-10 h-10 bg-indigo-50/50 dark:bg-indigo-900/10 rounded-full flex items-center justify-center text-indigo-500 border border-indigo-100 dark:border-indigo-800/30">
+                    <Briefcase className="w-5 h-5" />
+                  </div>
+                  <div className="flex flex-col">
+                    <div className="flex items-center gap-2">
+                      <h2 className="text-base font-bold text-[var(--text-primary)]">Workspace</h2>
+                      <div className={`w-2 h-2 rounded-full transition-all duration-500 ml-1 ${
+                        files.length > 0 
+                          ? 'bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.4)] animate-pulse' 
+                          : 'bg-gray-300 dark:bg-gray-600'
+                      }`} />
+                    </div>
+                    <div className="flex items-center gap-1.5 mt-0.5">
+                      <span className="text-xs text-[var(--text-muted)] font-medium tracking-tight">• {files.length} {files.length === 1 ? 'Document' : 'Documents'}</span>
+                    </div>
+                  </div>
+                </div>
+                <button 
+                  onClick={resetApp}
+                  className="text-[9px] font-bold uppercase tracking-[0.15em] text-[var(--text-muted)] hover:text-red-500 transition-colors flex items-center gap-2"
+                >
+                  <RotateCcw className="w-3 h-3" />
+                  Clear Workspace
+                </button>
+              </div>
+
+              {/* Upload Zone */}
               <div 
-                className="border-2 border-[var(--border-medium)] border-dashed rounded-[12px] p-20 flex flex-col items-center justify-center transition-all hover:border-[var(--text-primary)] hover:bg-[var(--bg-panel)] cursor-pointer bg-[var(--bg-sub)]"
+                className="border-[1.5px] border-[var(--border-medium)] border-dashed rounded-[14px] p-16 md:p-24 flex flex-col items-center justify-center transition-all hover:border-indigo-400/50 hover:bg-indigo-50/20 dark:hover:bg-indigo-900/5 cursor-pointer bg-transparent group"
                 onClick={() => document.getElementById('file-input')?.click()}
               >
                 <input type="file" id="file-input" className="hidden" multiple accept=".pdf" onChange={handleFileUpload} />
-                <FileUp className="w-12 h-12 text-[var(--text-muted)] mb-4" />
-                <h2 className="text-xl font-medium mb-2">Add Documents</h2>
-                <p className="text-[var(--text-secondary)] text-sm">Drop PDF files here to begin transformations.</p>
+                <div className="w-14 h-14 bg-[var(--bg-panel)] rounded-full flex items-center justify-center mb-6 border border-[var(--border-light)] custom-shadow group-hover:scale-105 transition-transform group-hover:border-indigo-200 dark:group-hover:border-indigo-800">
+                  <FileUp className="w-6 h-6 text-[var(--text-muted)] group-hover:text-indigo-500 transition-colors" />
+                </div>
+                <h2 className="text-xl font-bold mb-2 text-[var(--text-primary)] group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">Add Documents</h2>
+                <p className="text-[var(--text-muted)] text-xs max-w-xs text-center leading-relaxed">Drop your PDF files here or click to browse from your device.</p>
               </div>
 
               {files.length > 0 && (
-                <div className="mt-12 space-y-3">
-                  <h3 className="text-[10px] font-bold uppercase tracking-[0.2em] text-[var(--text-muted)] mb-4">Sequence</h3>
-                  {files.map((file, index) => (
-                    <div 
-                      key={file.id} 
-                      draggable
-                      onDragStart={() => handleDragStart(index)}
-                      onDragOver={(e) => handleDragOver(e, index)}
-                      onDrop={() => handleDrop(index)}
-                      className={`bg-[var(--bg-panel)] border p-4 flex items-center justify-between rounded-[8px] custom-shadow transition-all 
-                        ${dragOverIndex === index ? 'border-[var(--text-primary)] bg-[var(--bg-sub)]' : 'border-[var(--border-light)]'}`}
-                    >
-                      <div className="flex items-center gap-4">
-                        <GripVertical className="w-4 h-4 text-[var(--border-medium)] cursor-grab" />
-                        <FileText className="w-5 h-5 text-[var(--text-muted)]" />
-                        <div>
-                          <p className="text-sm font-medium">{file.name}</p>
-                          <p className="text-[10px] text-[var(--text-muted)] uppercase tracking-wider">{(file.size / 1024 / 1024).toFixed(2)} MB</p>
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between px-1">
+                    <h3 className="text-[10px] font-bold uppercase tracking-[0.2em] text-[var(--text-muted)]">Sequence Pipeline</h3>
+                    <span className="text-[9px] font-medium text-[var(--text-muted)]">Drag to reorder</span>
+                  </div>
+                  <div className="space-y-3">
+                    {files.map((file, index) => (
+                      <div 
+                        key={file.id} 
+                        draggable
+                        onDragStart={() => handleDragStart(index)}
+                        onDragOver={(e) => handleDragOver(e, index)}
+                        onDrop={() => handleDrop(index)}
+                        className={`bg-[var(--bg-panel)] border p-4 flex items-center justify-between rounded-[10px] shadow-sm transition-all 
+                          ${dragOverIndex === index ? 'border-indigo-400 bg-indigo-50/50 dark:bg-indigo-900/10' : 'border-[var(--border-light)]'}`}
+                      >
+                        <div className="flex items-center gap-4">
+                          <GripVertical className="w-4 h-4 text-[var(--border-medium)] cursor-grab active:cursor-grabbing" />
+                          <div className="w-9 h-9 bg-[var(--bg-main)] rounded-[6px] flex items-center justify-center text-[var(--text-muted)] border border-[var(--border-light)]">
+                            <FileText className="w-4.5 h-4.5" />
+                          </div>
+                          <div className="flex flex-col">
+                            <p className="text-xs font-bold text-[var(--text-primary)] truncate max-w-[200px] sm:max-w-md tracking-tight">{file.name}</p>
+                            <p className="text-[10px] font-semibold text-[var(--text-muted)] uppercase tracking-wider">{(file.size / 1024 / 1024).toFixed(2)} MB</p>
+                          </div>
                         </div>
+                        <button onClick={() => removeFile(file.id)} className="p-2 text-[var(--text-muted)] hover:text-red-500 transition-colors">
+                          <X className="w-4 h-4" />
+                        </button>
                       </div>
-                      <button onClick={() => removeFile(file.id)} className="p-2 text-[var(--text-muted)] hover:text-red-500">
-                        <X className="w-4 h-4" />
-                      </button>
-                    </div>
-                  ))}
+                    ))}
+                  </div>
                 </div>
               )}
             </div>
           ) : processingState.isProcessing ? (
             <ProcessingOverlay />
           ) : (
-            <div className="flex flex-col items-center justify-center h-full max-w-2xl mx-auto text-center">
-              <div className="w-20 h-20 bg-[var(--bg-sub)] rounded-full flex items-center justify-center mb-8">
-                <FileCheck className="w-10 h-10 text-[var(--text-primary)]" />
-              </div>
-              <h2 className="text-3xl font-bold font-designer mb-4">Documents Ready</h2>
-              <p className="text-[var(--text-secondary)] mb-10">Transformation pipeline complete. Your enhanced files are ready for export.</p>
-              
-              <div className="flex gap-4">
-                <Button variant="outline" onClick={() => setOutputBlobs([])}>
-                  <RotateCcw className="w-4 h-4 mr-2" />
-                  Reset
-                </Button>
-                <Button onClick={downloadOutput} className="px-12">
-                  <Download className="w-4 h-4 mr-2" />
+            <div className="flex flex-col items-center justify-center min-h-[60vh] animate-in fade-in zoom-in-95 duration-700">
+              <div className="max-w-xl w-full flex flex-col items-center text-center p-12 bg-[var(--bg-panel)] rounded-[24px] border border-[var(--border-light)] shadow-sm">
+                <h2 className="text-[48px] font-normal font-logo mb-3 text-[var(--text-primary)] tracking-tighter leading-tight">
+                  Clarté
+                </h2>
+                
+                <p className="text-[13px] font-medium text-[var(--text-muted)] mb-14 tracking-wide uppercase opacity-70">
+                  Your documents are prepared for export.
+                </p>
+                
+                <Button 
+                  onClick={downloadOutput} 
+                  size="lg"
+                  className="w-full py-6 text-[15px] font-bold uppercase tracking-[0.2em] shadow-[0_20px_50px_rgba(26,115,232,0.15)] mb-10 transition-all hover:scale-[1.03] active:scale-[0.97]"
+                >
+                  <Download className="w-5 h-5 mr-3.5" />
                   Download All
                 </Button>
+                
+                <button 
+                  onClick={() => setOutputBlobs([])}
+                  className="group flex items-center gap-3 px-8 py-2 text-[10px] font-bold uppercase tracking-[0.25em] text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-all opacity-60 hover:opacity-100"
+                >
+                  <RotateCcw className="w-3 h-3 group-hover:rotate-[-45deg] transition-transform duration-300" />
+                  Reset Pipeline
+                </button>
               </div>
             </div>
           )}
