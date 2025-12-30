@@ -8,6 +8,7 @@ import {
 } from './types';
 import Sidebar from './components/Sidebar';
 import Button from './components/Button';
+import HomePage from './components/HomePage';
 import { processPdfs } from './services/pdfService';
 import { 
   FileUp, 
@@ -131,6 +132,7 @@ const ProcessingOverlay: React.FC = () => {
 };
 
 const App: React.FC = () => {
+  const [view, setView] = useState<'home' | 'editor'>('home');
   const [isInitializing, setIsInitializing] = useState(true);
   const [files, setFiles] = useState<FileData[]>([]);
   const [draggedItemIndex, setDraggedItemIndex] = useState<number | null>(null);
@@ -143,7 +145,6 @@ const App: React.FC = () => {
   });
 
   useEffect(() => {
-    // Simulate system initialization
     const timer = setTimeout(() => {
       setIsInitializing(false);
     }, 1500);
@@ -268,6 +269,10 @@ const App: React.FC = () => {
     return <SkeletonLoader />;
   }
 
+  if (view === 'home') {
+    return <HomePage onStart={() => setView('editor')} theme={theme} setTheme={setTheme} />;
+  }
+
   return (
     <div className="flex flex-col h-screen w-full bg-[var(--bg-main)] overflow-hidden animate-in fade-in duration-700">
       <nav className="flex-shrink-0 bg-[var(--bg-panel)] z-50 border-b border-[var(--border-light)] h-16 flex items-center justify-between px-6 md:px-10">
@@ -275,7 +280,7 @@ const App: React.FC = () => {
           <button onClick={() => setIsMenuOpen(!isMenuOpen)} className="md:hidden p-1.5 text-[var(--text-secondary)]">
             <Menu className="w-5 h-5" />
           </button>
-          <div className="flex flex-col cursor-pointer select-none group" onClick={resetApp}>
+          <div className="flex flex-col cursor-pointer select-none group" onClick={() => setView('home')}>
             <h1 className="text-3xl font-medium tracking-tight font-logo leading-none text-[var(--text-primary)] transition-all group-hover:opacity-70">
               Clarté
             </h1>
@@ -400,28 +405,28 @@ const App: React.FC = () => {
           ) : (
             <div className="flex flex-col items-center justify-center min-h-[60vh] animate-in fade-in zoom-in-95 duration-700">
               <div className="max-w-xl w-full flex flex-col items-center text-center p-12 bg-[var(--bg-panel)] rounded-[24px] border border-[var(--border-light)] shadow-sm">
-                <h2 className="text-[48px] font-bold font-logo mb-3 text-[var(--text-primary)] tracking-tighter leading-tight">
-                  Downloads Ready
+                <h2 className="text-[40px] font-bold font-designer mb-4 text-[var(--text-primary)] tracking-tight leading-tight">
+                  Documents Ready
                 </h2>
                 
-                <p className="text-[13px] font-medium text-[var(--text-muted)] mb-14 tracking-wide uppercase opacity-70">
-                  Your documents are prepared for export.
+                <p className="text-[14px] font-medium text-[var(--text-secondary)] mb-12 max-w-md mx-auto leading-relaxed">
+                  The transformation pipeline has successfully finished processing your files. Your high-fidelity documents are prepared for export.
                 </p>
                 
                 <Button 
                   onClick={downloadOutput} 
                   size="lg"
-                  className="w-full py-6 text-[15px] font-bold uppercase tracking-[0.2em] shadow-[0_20px_50px_rgba(26,115,232,0.15)] mb-10 transition-all hover:scale-[1.03] active:scale-[0.97]"
+                  className="w-full py-6 text-[13px] font-bold uppercase tracking-[0.2em] shadow-[0_15px_35px_rgba(26,115,232,0.15)] mb-10 transition-all hover:scale-[1.02] active:scale-[0.98] rounded-[10px]"
                 >
-                  <Download className="w-5 h-5 mr-3.5" />
+                  <Download className="w-5 h-5 mr-3" />
                   Download All
                 </Button>
                 
                 <button 
                   onClick={() => setOutputBlobs([])}
-                  className="group flex items-center gap-3 px-8 py-2 text-[10px] font-bold uppercase tracking-[0.25em] text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-all opacity-60 hover:opacity-100"
+                  className="group flex items-center gap-2.5 px-6 py-2 text-[10px] font-bold uppercase tracking-[0.2em] text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-all"
                 >
-                  <RotateCcw className="w-3 h-3 group-hover:rotate-[-45deg] transition-transform duration-300" />
+                  <RotateCcw className="w-3.5 h-3.5 group-hover:rotate-[-60deg] transition-transform duration-300" />
                   Reset Pipeline
                 </button>
               </div>
