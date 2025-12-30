@@ -1,4 +1,3 @@
-
 import React from 'react';
 
 interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
@@ -18,7 +17,7 @@ const Button: React.FC<ButtonProps> = ({
   const baseStyles = "inline-flex items-center justify-center font-medium transition-all duration-200 focus:outline-none disabled:opacity-40 disabled:cursor-not-allowed rounded-[6px]";
   
   const variants = {
-    primary: "bg-[var(--accent-bg)] text-[var(--accent-text)] opacity-100 hover:opacity-90 active:scale-[0.98] custom-shadow",
+    primary: "bg-[var(--accent-bg)] text-[var(--accent-text)] opacity-100 hover:bg-[var(--accent-hover)] active:scale-[0.98] custom-shadow",
     secondary: "bg-[var(--bg-sub)] text-[var(--text-primary)] border border-[var(--border-light)] hover:bg-[var(--border-light)] active:bg-[var(--border-medium)]",
     outline: "border border-[var(--border-medium)] text-[var(--text-primary)] hover:border-[var(--text-primary)] hover:bg-[var(--bg-sub)] active:bg-[var(--bg-main)]",
     ghost: "text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-sub)] active:bg-[var(--border-light)]"
