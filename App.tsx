@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef } from 'react';
 import { 
   TransformationType, 
@@ -94,7 +93,7 @@ const ProcessingOverlay: React.FC = () => {
     <div className="h-[75vh] min-h-[500px] flex flex-col items-center justify-center relative overflow-hidden">
       <div className="absolute inset-0 flex items-center justify-center opacity-[0.05] pointer-events-none">
         <div className="w-[600px] h-[600px] border border-[var(--text-primary)] rounded-full animate-orbit"></div>
-        <div className="absolute w-[400px] h-[400px] border border-[var(--text-primary)] rounded-full animate-orbit" style={{ animationDirection: 'reverse', animationDuration: '6s' }}></div>
+        <div className="absolute w-[400px] h-[400px] border border border-[var(--text-primary)] rounded-full animate-orbit" style={{ animationDirection: 'reverse', animationDuration: '6s' }}></div>
       </div>
 
       <div className="relative mb-12 animate-float">
@@ -157,6 +156,57 @@ const App: React.FC = () => {
     }
     return 'system';
   });
+
+  // Global Context Menu Restriction (Anti-Inspect)
+  useEffect(() => {
+    const handleContextMenu = (e: MouseEvent) => {
+      e.preventDefault();
+    };
+
+    document.addEventListener('contextmenu', handleContextMenu);
+    
+    return () => {
+      document.removeEventListener('contextmenu', handleContextMenu);
+    };
+  }, []);
+
+  // External Dark Mode Extension Compatibility (MutationObserver)
+  useEffect(() => {
+    const isExtensionActive = () => {
+      const html = document.documentElement;
+      // Common attributes and classes used by Dark Reader and similar extensions
+      return html.hasAttribute('data-darkreader-mode') || 
+             html.hasAttribute('data-darkreader-scheme') ||
+             html.classList.contains('darkreader') ||
+             html.hasAttribute('data-dark-mode-extension');
+    };
+
+    const handleExtensionDetection = () => {
+      if (isExtensionActive() && theme !== 'dark') {
+        setTheme('dark');
+        console.debug('External dark mode extension detected. Synchronizing native theme.');
+      }
+    };
+
+    // Initial check
+    handleExtensionDetection();
+
+    // Observe changes to <html> attributes and classes
+    const observer = new MutationObserver((mutations) => {
+      mutations.forEach((mutation) => {
+        if (mutation.type === 'attributes') {
+          handleExtensionDetection();
+        }
+      });
+    });
+
+    observer.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ['data-darkreader-mode', 'data-darkreader-scheme', 'class', 'data-dark-mode-extension']
+    });
+
+    return () => observer.disconnect();
+  }, [theme]);
 
   useEffect(() => {
     localStorage.setItem('currentView', view);
