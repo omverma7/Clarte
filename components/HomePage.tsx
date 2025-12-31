@@ -96,8 +96,7 @@ const HomePage: React.FC<HomePageProps> = ({
           )}
           
           {/* Logo with Entrance then Scale-Down Exit */}
-          <div className={`flex items-center gap-6 relative z-10 ${isExiting ? 'animate-logo-exit' : 'animate-logo-entrance'}`}>
-            <img src="/favicon.png" alt="Clarté Logo" className="w-20 h-20 object-contain drop-shadow-2xl" />
+          <div className={`relative z-10 ${isExiting ? 'animate-logo-exit' : 'animate-logo-entrance'}`}>
             <h1 className="text-6xl font-medium tracking-tighter font-logo text-[var(--text-primary)]">
               Clarté
             </h1>
@@ -326,7 +325,7 @@ const HomePage: React.FC<HomePageProps> = ({
             <button onClick={onGoToSupport} className="hover:text-[var(--text-primary)] transition-colors">Support Us</button>
             <a href="#" className="hover:text-[var(--text-primary)] transition-colors">Privacy</a>
             <a href="#" className="hover:text-[var(--text-primary)] transition-colors">Github</a>
-            <a href="#" className="hover:text-[var(--text-primary)] transition-colors">Documentation</a>
+            <a href="#" className="hover:text(--text-primary)] transition-colors">Documentation</a>
           </div>
           
           <p className="text-[10px] text-[var(--text-muted)] reveal">
