@@ -104,7 +104,7 @@ const HomePage: React.FC<HomePageProps> = ({
       {/* Navbar */}
       <nav className="fixed top-0 w-full z-50 bg-[var(--bg-main)]/80 backdrop-blur-md border-b border-[var(--border-light)] px-6 md:px-12 h-16 flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <img src="/favicon.png" alt="Clarté Logo" className="w-8 h-8 object-contain" />
+          <img src="favicon.png" alt="Clarté Logo" className="w-8 h-8 object-contain" />
           <h1 className="text-2xl font-medium tracking-tighter font-logo">Clarté</h1>
         </div>
         <div className="flex items-center gap-4 md:gap-6">
@@ -156,7 +156,7 @@ const HomePage: React.FC<HomePageProps> = ({
         </div>
       </header>
 
-      {/* Features Content... (Omitted for brevity, assumed unchanged) */}
+      {/* Features Content */}
       <section className="py-24 px-6 bg-[var(--bg-panel)] border-y border-[var(--border-light)]">
         <div className="max-w-6xl mx-auto">
           <div className="grid md:grid-cols-2 gap-20 items-center">
