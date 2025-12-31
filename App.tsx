@@ -136,12 +136,8 @@ const ProcessingOverlay: React.FC = () => {
 const App: React.FC = () => {
   const { addToast, removeToast } = useToast();
   
-  const [view, setView] = useState<'home' | 'editor' | 'donation'>(() => {
-    if (typeof window !== 'undefined' && window.localStorage) {
-      return (localStorage.getItem('currentView') as 'home' | 'editor' | 'donation') || 'home';
-    }
-    return 'home';
-  });
+  // Changed view initialization to always default to 'home' and removed localStorage restoration
+  const [view, setView] = useState<'home' | 'editor' | 'donation'>('home');
 
   const [returnView, setReturnView] = useState<'home' | 'editor'>('home');
   const [editorLoading, setEditorLoading] = useState(false);
@@ -207,10 +203,6 @@ const App: React.FC = () => {
 
     return () => observer.disconnect();
   }, [theme]);
-
-  useEffect(() => {
-    localStorage.setItem('currentView', view);
-  }, [view]);
 
   useEffect(() => {
     const applyTheme = () => {
