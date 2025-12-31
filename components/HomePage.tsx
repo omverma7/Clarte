@@ -92,13 +92,16 @@ const HomePage: React.FC<HomePageProps> = ({
         <div className="relative flex items-center justify-center">
           {/* Pulsing ring background that scales up and fades out */}
           {!isExiting && (
-            <div className="absolute w-32 h-32 rounded-full border-2 border-indigo-500/40 animate-premium-pulse"></div>
+            <div className="absolute w-48 h-48 rounded-full border-2 border-indigo-500/40 animate-premium-pulse"></div>
           )}
           
           {/* Logo with Entrance then Scale-Down Exit */}
-          <h1 className={`text-6xl font-medium tracking-tighter font-logo text-[var(--text-primary)] relative z-10 ${isExiting ? 'animate-logo-exit' : 'animate-logo-entrance'}`}>
-            Clarté
-          </h1>
+          <div className={`flex items-center gap-6 relative z-10 ${isExiting ? 'animate-logo-exit' : 'animate-logo-entrance'}`}>
+            <img src="/favicon.png" alt="Clarté Logo" className="w-20 h-20 object-contain drop-shadow-2xl" />
+            <h1 className="text-6xl font-medium tracking-tighter font-logo text-[var(--text-primary)]">
+              Clarté
+            </h1>
+          </div>
         </div>
       </div>
     );
@@ -108,7 +111,8 @@ const HomePage: React.FC<HomePageProps> = ({
     <div className="min-h-screen bg-[var(--bg-main)] text-[var(--text-primary)] font-sans selection:bg-indigo-100 dark:selection:bg-indigo-900/30 overflow-x-hidden animate-in fade-in duration-1000">
       {/* Navbar */}
       <nav className="fixed top-0 w-full z-50 bg-[var(--bg-main)]/80 backdrop-blur-md border-b border-[var(--border-light)] px-6 md:px-12 h-16 flex items-center justify-between">
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-3">
+          <img src="/favicon.png" alt="Clarté Logo" className="w-7 h-7 object-contain" />
           <h1 className="text-2xl font-medium tracking-tighter font-logo">Clarté</h1>
         </div>
         <div className="flex items-center gap-4 md:gap-6">
@@ -311,7 +315,10 @@ const HomePage: React.FC<HomePageProps> = ({
       <footer className="py-12 border-t border-[var(--border-light)] px-6">
         <div className="max-w-6xl mx-auto flex flex-col md:flex-row justify-between items-center gap-8">
           <div className="flex flex-col items-center md:items-start reveal">
-            <h2 className="text-xl font-medium tracking-tighter font-logo mb-2">Clarté</h2>
+            <div className="flex items-center gap-2 mb-2">
+              <img src="/favicon.png" alt="Clarté Logo" className="w-6 h-6 object-contain" />
+              <h2 className="text-xl font-medium tracking-tighter font-logo">Clarté</h2>
+            </div>
             <p className="text-xs text-[var(--text-muted)] uppercase tracking-widest">Precision PDF Tooling</p>
           </div>
           
