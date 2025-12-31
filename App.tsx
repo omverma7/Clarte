@@ -137,7 +137,6 @@ const ProcessingOverlay: React.FC = () => {
 const App: React.FC = () => {
   const { addToast, removeToast } = useToast();
   
-  // Persist current view state
   const [view, setView] = useState<'home' | 'editor' | 'donation'>(() => {
     if (typeof window !== 'undefined' && window.localStorage) {
       return (localStorage.getItem('currentView') as 'home' | 'editor' | 'donation') || 'home';
@@ -145,9 +144,7 @@ const App: React.FC = () => {
     return 'home';
   });
 
-  // Track the previous view to return to from donation page
   const [returnView, setReturnView] = useState<'home' | 'editor'>('home');
-  
   const [editorLoading, setEditorLoading] = useState(false);
   const [hasPlayedIntro, setHasPlayedIntro] = useState(false);
   const [files, setFiles] = useState<FileData[]>([]);
@@ -161,7 +158,6 @@ const App: React.FC = () => {
     return 'system';
   });
 
-  // Effect to sync view to localStorage
   useEffect(() => {
     localStorage.setItem('currentView', view);
   }, [view]);
@@ -354,7 +350,7 @@ const App: React.FC = () => {
           </button>
           <div className="flex items-center gap-3 cursor-pointer select-none group" onClick={() => setView('home')}>
             <img src="/favicon.png" alt="Clarté Logo" className="w-8 h-8 object-contain opacity-90 group-hover:opacity-100 transition-opacity" />
-            <h1 className="text-3xl font-medium tracking-tight font-logo leading-none text-[var(--text-primary)] transition-all group-hover:opacity-70">
+            <h1 className="text-2xl font-medium tracking-tighter font-logo leading-none text-[var(--text-primary)] transition-all group-hover:opacity-70">
               Clarté
             </h1>
           </div>

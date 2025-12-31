@@ -35,23 +35,19 @@ const HomePage: React.FC<HomePageProps> = ({
   hasPlayedIntro, 
   onIntroFinished 
 }) => {
-  // isHomeLoading controls if we are currently showing the intro sequence
   const [isHomeLoading, setIsHomeLoading] = useState(!hasPlayedIntro);
   const [isExiting, setIsExiting] = useState(false);
 
   useEffect(() => {
-    // If we've already played the intro in this session, don't do anything
     if (hasPlayedIntro) return;
 
-    // 1. Initial entrance duration (0 - 1800ms)
     const exitTimer = setTimeout(() => {
       setIsExiting(true);
     }, 1800);
 
-    // 2. Completely remove loader after exit animation finishes (2600ms)
     const removeTimer = setTimeout(() => {
       setIsHomeLoading(false);
-      onIntroFinished(); // Mark as played in the parent state
+      onIntroFinished();
     }, 2600);
 
     return () => {
@@ -60,7 +56,6 @@ const HomePage: React.FC<HomePageProps> = ({
     };
   }, [hasPlayedIntro, onIntroFinished]);
 
-  // Set up reveal animations only after the content is rendered
   useEffect(() => {
     if (isHomeLoading) return;
 
@@ -90,13 +85,11 @@ const HomePage: React.FC<HomePageProps> = ({
     return (
       <div className={`fixed inset-0 z-[100] bg-[var(--bg-main)] flex items-center justify-center transition-all duration-700 ${isExiting ? 'opacity-0 scale-95' : 'opacity-100'}`}>
         <div className="relative flex items-center justify-center">
-          {/* Pulsing ring background that scales up and fades out */}
           {!isExiting && (
             <div className="absolute w-48 h-48 rounded-full border-2 border-indigo-500/40 animate-premium-pulse"></div>
           )}
           
-          {/* Logo with Entrance then Scale-Down Exit */}
-          <div className={`relative z-10 ${isExiting ? 'animate-logo-exit' : 'animate-logo-entrance'}`}>
+          <div className={`relative z-10 ${isExiting ? 'animate-text-exit' : 'animate-text-entrance'}`}>
             <h1 className="text-6xl font-medium tracking-tighter font-logo text-[var(--text-primary)]">
               Clarté
             </h1>
@@ -111,7 +104,7 @@ const HomePage: React.FC<HomePageProps> = ({
       {/* Navbar */}
       <nav className="fixed top-0 w-full z-50 bg-[var(--bg-main)]/80 backdrop-blur-md border-b border-[var(--border-light)] px-6 md:px-12 h-16 flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <img src="/favicon.png" alt="Clarté Logo" className="w-7 h-7 object-contain" />
+          <img src="/favicon.png" alt="Clarté Logo" className="w-8 h-8 object-contain" />
           <h1 className="text-2xl font-medium tracking-tighter font-logo">Clarté</h1>
         </div>
         <div className="flex items-center gap-4 md:gap-6">
@@ -163,7 +156,7 @@ const HomePage: React.FC<HomePageProps> = ({
         </div>
       </header>
 
-      {/* What Clarté Does */}
+      {/* Features Content... (Omitted for brevity, assumed unchanged) */}
       <section className="py-24 px-6 bg-[var(--bg-panel)] border-y border-[var(--border-light)]">
         <div className="max-w-6xl mx-auto">
           <div className="grid md:grid-cols-2 gap-20 items-center">
@@ -194,7 +187,6 @@ const HomePage: React.FC<HomePageProps> = ({
               <div className="absolute inset-0 p-8 flex flex-col">
                 <div className="h-6 w-1/2 shimmer rounded mb-8 opacity-40"></div>
                 <div className="flex-1 border-2 border-dashed border-[var(--border-light)] rounded-[12px] flex items-center justify-center relative overflow-hidden">
-                   {/* Abstract UI representation */}
                    <div className="w-48 h-64 bg-[var(--bg-panel)] rounded-[4px] shadow-lg rotate-[-3deg] border border-[var(--border-light)] p-4 flex flex-col gap-3">
                       <div className="h-2 w-full bg-gray-100 dark:bg-gray-800 rounded"></div>
                       <div className="h-2 w-3/4 bg-gray-100 dark:bg-gray-800 rounded"></div>
@@ -217,7 +209,6 @@ const HomePage: React.FC<HomePageProps> = ({
         </div>
       </section>
 
-      {/* Features Grid */}
       <section id="features" className="py-24 px-6">
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-16 reveal">
@@ -227,36 +218,12 @@ const HomePage: React.FC<HomePageProps> = ({
 
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-8">
             {[
-              { 
-                title: 'High-Fidelity Rendering', 
-                desc: 'Advanced rasterization ensures every character and vector remains crisp at any scale.',
-                icon: Layout
-              },
-              { 
-                title: 'Batch Workflow', 
-                desc: 'Process dozens of documents simultaneously with unified transformation pipelines.',
-                icon: Layers
-              },
-              { 
-                title: 'Instant Export', 
-                desc: 'Synthesize and download your processed documents in seconds with optimized file sizing.',
-                icon: Zap
-              },
-              { 
-                title: 'Professional Layouts', 
-                desc: 'Define custom density, orientation, and spacing for academic or professional publishing.',
-                icon: Target
-              },
-              { 
-                title: 'Clean Interface', 
-                desc: 'No ads, no accounts, no distractions. Just precision tools in a calm environment.',
-                icon: ShieldCheck
-              },
-              { 
-                title: 'Color Optimization', 
-                desc: 'Invert colors for dark-mode reading or convert to grayscale for eco-friendly printing.',
-                icon: Sun
-              }
+              { title: 'High-Fidelity Rendering', desc: 'Advanced rasterization ensures every character and vector remains crisp at any scale.', icon: Layout },
+              { title: 'Batch Workflow', desc: 'Process dozens of documents simultaneously with unified transformation pipelines.', icon: Layers },
+              { title: 'Instant Export', desc: 'Synthesize and download your processed documents in seconds with optimized file sizing.', icon: Zap },
+              { title: 'Professional Layouts', desc: 'Define custom density, orientation, and spacing for academic or professional publishing.', icon: Target },
+              { title: 'Clean Interface', desc: 'No ads, no accounts, no distractions. Just precision tools in a calm environment.', icon: ShieldCheck },
+              { title: 'Color Optimization', desc: 'Invert colors for dark-mode reading or convert to grayscale for eco-friendly printing.', icon: Sun }
             ].map((feature, i) => (
               <div key={i} className="reveal group p-8 rounded-[24px] bg-[var(--bg-panel)] border border-[var(--border-light)] hover:border-indigo-200 dark:hover:border-indigo-800 transition-all hover:shadow-xl hover:-translate-y-1">
                 <div className="w-12 h-12 rounded-xl bg-indigo-50 dark:bg-indigo-900/20 flex items-center justify-center text-indigo-500 mb-6 group-hover:scale-110 transition-transform">
@@ -270,7 +237,6 @@ const HomePage: React.FC<HomePageProps> = ({
         </div>
       </section>
 
-      {/* Why Choose Section */}
       <section className="py-24 px-6 bg-[var(--bg-panel)] overflow-hidden">
         <div className="max-w-4xl mx-auto text-center reveal">
           <h3 className="text-3xl font-bold tracking-tight mb-8">Clarté isn't just another PDF tool. <br /> It's a focused creative environment.</h3>
@@ -286,7 +252,6 @@ const HomePage: React.FC<HomePageProps> = ({
         </div>
       </section>
 
-      {/* CTA Section */}
       <section className="py-32 px-6">
         <div className="max-w-4xl mx-auto rounded-[40px] bg-[var(--accent-bg)] p-12 md:p-24 text-center text-white relative overflow-hidden shadow-2xl reveal">
           <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 blur-[80px] rounded-full translate-x-1/2 -translate-y-1/2"></div>
@@ -315,7 +280,6 @@ const HomePage: React.FC<HomePageProps> = ({
         <div className="max-w-6xl mx-auto flex flex-col md:flex-row justify-between items-center gap-8">
           <div className="flex flex-col items-center md:items-start reveal">
             <div className="flex items-center gap-2 mb-2">
-              <img src="/favicon.png" alt="Clarté Logo" className="w-6 h-6 object-contain" />
               <h2 className="text-xl font-medium tracking-tighter font-logo">Clarté</h2>
             </div>
             <p className="text-xs text-[var(--text-muted)] uppercase tracking-widest">Precision PDF Tooling</p>
@@ -325,7 +289,7 @@ const HomePage: React.FC<HomePageProps> = ({
             <button onClick={onGoToSupport} className="hover:text-[var(--text-primary)] transition-colors">Support Us</button>
             <a href="#" className="hover:text-[var(--text-primary)] transition-colors">Privacy</a>
             <a href="#" className="hover:text-[var(--text-primary)] transition-colors">Github</a>
-            <a href="#" className="hover:text(--text-primary)] transition-colors">Documentation</a>
+            <a href="#" className="hover:text-[var(--text-primary)] transition-colors">Documentation</a>
           </div>
           
           <p className="text-[10px] text-[var(--text-muted)] reveal">
