@@ -14,7 +14,8 @@ import {
   Layout,
   Cpu,
   Target,
-  Check
+  Check,
+  Heart
 } from 'lucide-react';
 
 interface HomePageProps {
@@ -110,11 +111,16 @@ const HomePage: React.FC<HomePageProps> = ({
         <div className="flex items-center gap-2">
           <h1 className="text-2xl font-medium tracking-tighter font-logo">Clarté</h1>
         </div>
-        <div className="flex items-center gap-6">
+        <div className="flex items-center gap-4 md:gap-6">
+          <button 
+            onClick={onGoToSupport}
+            className="flex items-center gap-2 px-3 py-2 text-[11px] font-bold uppercase tracking-widest text-[var(--text-secondary)] hover:text-pink-500 transition-colors rounded-full hover:bg-[var(--bg-sub)]"
+            aria-label="Support Clarté"
+          >
+            <Heart className="w-5 h-5" />
+            <span className="hidden md:inline">Support</span>
+          </button>
           <ThemeToggle theme={theme} setTheme={setTheme} />
-          <Button variant="primary" size="sm" onClick={onStart} className="rounded-full px-6 transition-transform hover:scale-105">
-            Try Clarté
-          </Button>
         </div>
       </nav>
 

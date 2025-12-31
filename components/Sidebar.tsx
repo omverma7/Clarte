@@ -301,14 +301,6 @@ const Sidebar: React.FC<SidebarProps> = ({
           >
             {isProcessing ? 'Processing' : 'Render Document'}
           </Button>
-          
-          <button 
-            onClick={onSupport}
-            className="w-full py-3 flex items-center justify-center gap-2.5 text-[10px] font-bold uppercase tracking-[0.2em] text-[var(--text-muted)] hover:text-pink-500 transition-all border border-transparent hover:border-pink-100 dark:hover:border-pink-900/30 rounded-[12px] bg-transparent hover:bg-pink-50/30 dark:hover:bg-pink-900/5"
-          >
-            <Heart className="w-3.5 h-3.5 fill-current" />
-            Support Clarté
-          </button>
         </div>
       </aside>
     </>

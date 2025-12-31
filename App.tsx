@@ -29,7 +29,8 @@ import {
   Sun,
   Moon,
   Monitor,
-  Briefcase
+  Briefcase,
+  Heart
 } from 'lucide-react';
 
 const SkeletonLoader: React.FC = () => (
@@ -143,6 +144,9 @@ const App: React.FC = () => {
     }
     return 'home';
   });
+
+  // Track the previous view to return to from donation page
+  const [returnView, setReturnView] = useState<'home' | 'editor'>('home');
   
   const [editorLoading, setEditorLoading] = useState(false);
   const [hasPlayedIntro, setHasPlayedIntro] = useState(false);
@@ -316,7 +320,10 @@ const App: React.FC = () => {
     return (
       <HomePage 
         onStart={handleStartEditor} 
-        onGoToSupport={() => setView('donation')}
+        onGoToSupport={() => {
+          setReturnView('home');
+          setView('donation');
+        }}
         theme={theme} 
         setTheme={setTheme} 
         hasPlayedIntro={hasPlayedIntro}
@@ -326,7 +333,12 @@ const App: React.FC = () => {
   }
 
   if (view === 'donation') {
-    return <DonationPage onBack={() => setView('editor')} />;
+    return (
+      <DonationPage 
+        onBack={() => setView(returnView)} 
+        backLabel={returnView === 'home' ? 'Back to Home' : 'Back to Editor'}
+      />
+    );
   }
 
   if (editorLoading) {
@@ -347,6 +359,17 @@ const App: React.FC = () => {
           </div>
         </div>
         <div className="flex items-center gap-4">
+          <button 
+            onClick={() => {
+              setReturnView('editor');
+              setView('donation');
+            }}
+            className="flex items-center gap-2 px-3 md:px-4 py-2 text-[11px] font-bold uppercase tracking-widest text-[var(--text-secondary)] hover:text-pink-500 transition-colors rounded-full hover:bg-[var(--bg-sub)]"
+            aria-label="Support Clarté"
+          >
+            <Heart className="w-5 h-5" />
+            <span className="hidden md:inline">Support</span>
+          </button>
           <ThemeToggle theme={theme} setTheme={setTheme} />
         </div>
       </nav>
@@ -359,7 +382,10 @@ const App: React.FC = () => {
           layoutConfig={layoutConfig}
           setLayoutConfig={setLayoutConfig}
           onProcess={handleProcess}
-          onSupport={() => setView('donation')}
+          onSupport={() => {
+            setReturnView('editor');
+            setView('donation');
+          }}
           isProcessing={processingState.isProcessing}
           hasFiles={files.length > 0}
           isOpen={isMenuOpen}
