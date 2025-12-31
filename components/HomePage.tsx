@@ -103,9 +103,11 @@ const HomePage: React.FC<HomePageProps> = ({
     <div className="min-h-screen bg-[var(--bg-main)] text-[var(--text-primary)] font-sans selection:bg-indigo-100 dark:selection:bg-indigo-900/30 overflow-x-hidden animate-in fade-in duration-1000">
       {/* Navbar */}
       <nav className="fixed top-0 w-full z-50 bg-[var(--bg-main)]/80 backdrop-blur-md border-b border-[var(--border-light)] px-6 md:px-12 h-16 flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <img src="favicon.png" alt="Clarté Logo" className="w-8 h-8 object-contain" />
-          <h1 className="text-2xl font-medium tracking-tighter font-logo">Clarté</h1>
+        <div 
+          className="flex items-center select-none group cursor-pointer"
+          onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+        >
+          <h1 className="text-2xl font-medium tracking-tighter font-logo transition-all duration-300 group-hover:opacity-70 group-hover:translate-x-0.5">Clarté</h1>
         </div>
         <div className="flex items-center gap-4 md:gap-6">
           <button 

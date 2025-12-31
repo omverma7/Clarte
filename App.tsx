@@ -348,9 +348,11 @@ const App: React.FC = () => {
           <button onClick={() => setIsMenuOpen(!isMenuOpen)} className="md:hidden p-1.5 text-[var(--text-secondary)]">
             <Menu className="w-5 h-5" />
           </button>
-          <div className="flex items-center gap-3 cursor-pointer select-none group" onClick={() => setView('home')}>
-            <img src="favicon.png" alt="Clarté Logo" className="w-8 h-8 object-contain transition-opacity group-hover:opacity-70" />
-            <h1 className="text-2xl font-medium tracking-tighter font-logo leading-none text-[var(--text-primary)] transition-all group-hover:opacity-70">
+          <div 
+            className="flex items-center cursor-pointer select-none group" 
+            onClick={() => setView('home')}
+          >
+            <h1 className="text-2xl font-medium tracking-tighter font-logo leading-none text-[var(--text-primary)] transition-all duration-300 group-hover:opacity-70 group-hover:translate-x-0.5">
               Clarté
             </h1>
           </div>
