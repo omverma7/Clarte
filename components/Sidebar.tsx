@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { TransformationType, TransformationConfig, LayoutPagesPerSheet, LayoutOrientation, LayoutFlow, LayoutValue, FileData } from '../types';
 import { 
@@ -11,7 +12,8 @@ import {
   Plus,
   Minus,
   Files,
-  GripVertical
+  GripVertical,
+  Heart
 } from 'lucide-react';
 import Button from './Button';
 
@@ -22,6 +24,7 @@ interface SidebarProps {
   layoutConfig: LayoutValue;
   setLayoutConfig: (config: LayoutValue) => void;
   onProcess: () => void;
+  onSupport: () => void;
   isProcessing: boolean;
   hasFiles: boolean;
   isOpen?: boolean;
@@ -35,6 +38,7 @@ const Sidebar: React.FC<SidebarProps> = ({
   layoutConfig,
   setLayoutConfig,
   onProcess,
+  onSupport,
   isProcessing,
   hasFiles,
   isOpen,
@@ -288,7 +292,7 @@ const Sidebar: React.FC<SidebarProps> = ({
           </section>
         </div>
 
-        <div className="mt-10 pt-6">
+        <div className="mt-10 pt-6 space-y-4">
           <Button 
             className="w-full py-4 rounded-[14px] text-[11px] font-bold uppercase tracking-[0.2em] shadow-lg shadow-blue-500/10" 
             onClick={onProcess} 
@@ -297,6 +301,14 @@ const Sidebar: React.FC<SidebarProps> = ({
           >
             {isProcessing ? 'Processing' : 'Render Document'}
           </Button>
+          
+          <button 
+            onClick={onSupport}
+            className="w-full py-3 flex items-center justify-center gap-2.5 text-[10px] font-bold uppercase tracking-[0.2em] text-[var(--text-muted)] hover:text-pink-500 transition-all border border-transparent hover:border-pink-100 dark:hover:border-pink-900/30 rounded-[12px] bg-transparent hover:bg-pink-50/30 dark:hover:bg-pink-900/5"
+          >
+            <Heart className="w-3.5 h-3.5 fill-current" />
+            Support Clarté
+          </button>
         </div>
       </aside>
     </>

@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from 'react';
+
+import React, { useState, useEffect, useRef } from 'react';
 import { 
   TransformationType, 
   TransformationConfig, 
@@ -9,7 +10,10 @@ import {
 import Sidebar from './components/Sidebar';
 import Button from './components/Button';
 import HomePage from './components/HomePage';
+import ThemeToggle from './components/ThemeToggle';
+import DonationPage from './components/DonationPage';
 import { processPdfs } from './services/pdfService';
+import { useToast } from './components/ToastContext';
 import { 
   FileUp, 
   FileText, 
@@ -24,12 +28,12 @@ import {
   Layers as LayersIcon,
   Sun,
   Moon,
+  Monitor,
   Briefcase
 } from 'lucide-react';
 
 const SkeletonLoader: React.FC = () => (
   <div className="flex flex-col h-screen w-full bg-[var(--bg-main)] overflow-hidden animate-pulse">
-    {/* Header Skeleton */}
     <nav className="flex-shrink-0 bg-[var(--bg-panel)] z-50 border-b border-[var(--border-light)] h-16 flex items-center justify-between px-6 md:px-10">
       <div className="flex items-center gap-4">
         <div className="w-24 h-8 shimmer rounded"></div>
@@ -38,7 +42,6 @@ const SkeletonLoader: React.FC = () => (
     </nav>
 
     <div className="flex flex-1 overflow-hidden">
-      {/* Sidebar Skeleton */}
       <aside className="hidden md:flex w-80 bg-[var(--bg-panel)] border-r border-[var(--border-light)] p-8 flex-col space-y-10">
         <div className="space-y-6">
           <div className="w-32 h-3 shimmer mb-6"></div>
@@ -54,7 +57,6 @@ const SkeletonLoader: React.FC = () => (
         <div className="w-full h-12 shimmer rounded mt-auto"></div>
       </aside>
 
-      {/* Main Content Skeleton */}
       <main className="flex-1 p-6 md:p-16">
         <div className="max-w-4xl mx-auto space-y-8">
           <div className="w-full h-20 shimmer rounded-xl"></div>
@@ -132,26 +134,59 @@ const ProcessingOverlay: React.FC = () => {
 };
 
 const App: React.FC = () => {
-  const [view, setView] = useState<'home' | 'editor'>('home');
+  const { addToast, removeToast } = useToast();
+  
+  // Persist current view state
+  const [view, setView] = useState<'home' | 'editor' | 'donation'>(() => {
+    if (typeof window !== 'undefined' && window.localStorage) {
+      return (localStorage.getItem('currentView') as 'home' | 'editor' | 'donation') || 'home';
+    }
+    return 'home';
+  });
+  
   const [editorLoading, setEditorLoading] = useState(false);
   const [hasPlayedIntro, setHasPlayedIntro] = useState(false);
   const [files, setFiles] = useState<FileData[]>([]);
   const [draggedItemIndex, setDraggedItemIndex] = useState<number | null>(null);
   const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
-  const [theme, setTheme] = useState<'light' | 'dark'>(() => {
+  
+  const [theme, setTheme] = useState<'light' | 'dark' | 'system'>(() => {
     if (typeof window !== 'undefined' && window.localStorage) {
-      return (localStorage.getItem('theme') as 'light' | 'dark') || 'light';
+      return (localStorage.getItem('theme') as 'light' | 'dark' | 'system') || 'system';
     }
-    return 'light';
+    return 'system';
   });
 
+  // Effect to sync view to localStorage
   useEffect(() => {
-    if (theme === 'dark') {
-      document.documentElement.classList.add('dark');
-    } else {
-      document.documentElement.classList.remove('dark');
-    }
+    localStorage.setItem('currentView', view);
+  }, [view]);
+
+  useEffect(() => {
+    const applyTheme = () => {
+      let isDark = false;
+      if (theme === 'system') {
+        isDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      } else {
+        isDark = theme === 'dark';
+      }
+
+      if (isDark) {
+        document.documentElement.classList.add('dark');
+      } else {
+        document.documentElement.classList.remove('dark');
+      }
+    };
+
+    applyTheme();
     localStorage.setItem('theme', theme);
+
+    if (theme === 'system') {
+      const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+      const handleChange = () => applyTheme();
+      mediaQuery.addEventListener('change', handleChange);
+      return () => mediaQuery.removeEventListener('change', handleChange);
+    }
   }, [theme]);
 
   const defaultPipeline: TransformationConfig[] = [
@@ -178,7 +213,6 @@ const App: React.FC = () => {
   });
   const [outputBlobs, setOutputBlobs] = useState<Blob[]>([]);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [showToast, setShowToast] = useState(false);
 
   const resetApp = () => {
     setFiles([]);
@@ -186,12 +220,12 @@ const App: React.FC = () => {
     setLayoutConfig(defaultLayoutConfig);
     setProcessingState({ isProcessing: false, progress: 0, error: null });
     setOutputBlobs([]);
+    addToast('success', 'Workspace has been cleared');
   };
 
   const handleStartEditor = () => {
     setEditorLoading(true);
     setView('editor');
-    // Simulate initial workspace load for the skeleton to appear
     setTimeout(() => {
       setEditorLoading(false);
     }, 1200);
@@ -206,11 +240,16 @@ const App: React.FC = () => {
         file: file
       }));
       setFiles(prev => [...prev, ...newFiles]);
+      addToast('success', `Added ${newFiles.length} file(s)`);
     }
   };
 
   const removeFile = (id: string) => {
+    const fileToRemove = files.find(f => f.id === id);
     setFiles(prev => prev.filter(f => f.id !== id));
+    if (fileToRemove) {
+      addToast('success', `Removed ${fileToRemove.name}`);
+    }
   };
 
   const handleDragStart = (index: number) => {
@@ -238,18 +277,24 @@ const App: React.FC = () => {
   const handleProcess = async () => {
     if (files.length === 0) return;
     setProcessingState({ isProcessing: true, progress: 0, error: null });
+    const toastId = addToast('loading', 'Processing documents...', 0);
+    
     try {
       const results = await processPdfs(files.map(f => f.file), pipeline, layoutConfig);
       const blobs = results.map(res => new Blob([res], { type: 'application/pdf' }));
       setOutputBlobs(blobs);
       setProcessingState({ isProcessing: false, progress: 100, error: null });
+      removeToast(toastId);
+      addToast('success', 'Document rendering complete');
     } catch (err: any) {
       console.error(err);
       setProcessingState({ 
         isProcessing: false, 
         progress: 0, 
-        error: err.message || 'An unexpected error occurred during processing.' 
+        error: err.message || 'Processing failed' 
       });
+      removeToast(toastId);
+      addToast('error', err.message || 'An unexpected error occurred during processing.');
     }
   };
 
@@ -264,20 +309,24 @@ const App: React.FC = () => {
       document.body.removeChild(a);
       URL.revokeObjectURL(url);
     });
-    setShowToast(true);
-    setTimeout(() => setShowToast(false), 3000);
+    addToast('success', 'Download started successfully');
   };
 
   if (view === 'home') {
     return (
       <HomePage 
         onStart={handleStartEditor} 
+        onGoToSupport={() => setView('donation')}
         theme={theme} 
         setTheme={setTheme} 
         hasPlayedIntro={hasPlayedIntro}
         onIntroFinished={() => setHasPlayedIntro(true)}
       />
     );
+  }
+
+  if (view === 'donation') {
+    return <DonationPage onBack={() => setView('editor')} />;
   }
 
   if (editorLoading) {
@@ -298,12 +347,7 @@ const App: React.FC = () => {
           </div>
         </div>
         <div className="flex items-center gap-4">
-          <button
-            onClick={() => setTheme(theme === 'light' ? 'dark' : 'light')}
-            className="p-2.5 text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-sub)] rounded-full transition-all"
-          >
-            {theme === 'light' ? <Moon className="w-[18px] h-[18px]" /> : <Sun className="w-[18px] h-[18px]" />}
-          </button>
+          <ThemeToggle theme={theme} setTheme={setTheme} />
         </div>
       </nav>
 
@@ -315,6 +359,7 @@ const App: React.FC = () => {
           layoutConfig={layoutConfig}
           setLayoutConfig={setLayoutConfig}
           onProcess={handleProcess}
+          onSupport={() => setView('donation')}
           isProcessing={processingState.isProcessing}
           hasFiles={files.length > 0}
           isOpen={isMenuOpen}
@@ -322,18 +367,8 @@ const App: React.FC = () => {
         />
 
         <main className="flex-1 overflow-y-auto p-6 md:p-10 lg:p-16">
-          {processingState.error && (
-            <div className="mb-8 p-4 bg-red-900/10 border border-red-900/30 text-red-500 text-sm flex items-center gap-4 rounded-[8px]">
-              <div className="flex-shrink-0">
-                <Info className="w-4 h-4" />
-              </div>
-              <div>{processingState.error}</div>
-            </div>
-          )}
-
           {outputBlobs.length === 0 && !processingState.isProcessing ? (
             <div className="max-w-4xl mx-auto space-y-10">
-              {/* Workspace Status Panel */}
               <div className="bg-[var(--bg-panel)] border border-[var(--border-light)] rounded-[14px] p-5 flex items-center justify-between shadow-sm">
                 <div className="flex items-center gap-4">
                   <div className="w-10 h-10 bg-indigo-50/50 dark:bg-indigo-900/10 rounded-full flex items-center justify-center text-indigo-500 border border-indigo-100 dark:border-indigo-800/30">
@@ -362,7 +397,6 @@ const App: React.FC = () => {
                 </button>
               </div>
 
-              {/* Upload Zone */}
               <div 
                 className="border-[1.5px] border-[var(--border-medium)] border-dashed rounded-[14px] p-16 md:p-24 flex flex-col items-center justify-center transition-all hover:border-indigo-400/50 hover:bg-indigo-50/20 dark:hover:bg-indigo-900/5 cursor-pointer bg-transparent group"
                 onClick={() => document.getElementById('file-input')?.click()}
@@ -445,15 +479,6 @@ const App: React.FC = () => {
           )}
         </main>
       </div>
-
-      {showToast && (
-        <div className="fixed bottom-10 left-1/2 -translate-x-1/2 z-[100] animate-center-popup">
-          <div className="bg-[var(--accent-bg)] text-[var(--accent-text)] px-8 py-4 rounded-full shadow-2xl flex items-center gap-3">
-            <Check className="w-4 h-4" />
-            <span className="text-sm font-bold uppercase tracking-widest">Download Complete</span>
-          </div>
-        </div>
-      )}
     </div>
   );
 };

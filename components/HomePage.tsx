@@ -1,5 +1,7 @@
+
 import React, { useState, useEffect } from 'react';
 import Button from './Button';
+import ThemeToggle from './ThemeToggle';
 import { 
   Zap, 
   Layers, 
@@ -8,6 +10,7 @@ import {
   ArrowRight, 
   Sun, 
   Moon,
+  Monitor,
   Layout,
   Cpu,
   Target,
@@ -16,14 +19,16 @@ import {
 
 interface HomePageProps {
   onStart: () => void;
-  theme: 'light' | 'dark';
-  setTheme: (theme: 'light' | 'dark') => void;
+  onGoToSupport: () => void;
+  theme: 'light' | 'dark' | 'system';
+  setTheme: (theme: 'light' | 'dark' | 'system') => void;
   hasPlayedIntro: boolean;
   onIntroFinished: () => void;
 }
 
 const HomePage: React.FC<HomePageProps> = ({ 
   onStart, 
+  onGoToSupport,
   theme, 
   setTheme, 
   hasPlayedIntro, 
@@ -106,12 +111,7 @@ const HomePage: React.FC<HomePageProps> = ({
           <h1 className="text-2xl font-medium tracking-tighter font-logo">Clarté</h1>
         </div>
         <div className="flex items-center gap-6">
-          <button
-            onClick={() => setTheme(theme === 'light' ? 'dark' : 'light')}
-            className="p-2 text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors rounded-full"
-          >
-            {theme === 'light' ? <Moon className="w-5 h-5" /> : <Sun className="w-5 h-5" />}
-          </button>
+          <ThemeToggle theme={theme} setTheme={setTheme} />
           <Button variant="primary" size="sm" onClick={onStart} className="rounded-full px-6 transition-transform hover:scale-105">
             Try Clarté
           </Button>
@@ -310,6 +310,7 @@ const HomePage: React.FC<HomePageProps> = ({
           </div>
           
           <div className="flex items-center gap-8 text-[11px] font-bold uppercase tracking-widest text-[var(--text-secondary)] reveal">
+            <button onClick={onGoToSupport} className="hover:text-[var(--text-primary)] transition-colors">Support Us</button>
             <a href="#" className="hover:text-[var(--text-primary)] transition-colors">Privacy</a>
             <a href="#" className="hover:text-[var(--text-primary)] transition-colors">Github</a>
             <a href="#" className="hover:text-[var(--text-primary)] transition-colors">Documentation</a>
