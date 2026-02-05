@@ -19,7 +19,7 @@ const DonationPage: React.FC<DonationPageProps> = ({ onBack, backLabel = "Back t
   }, []);
 
   const handleDonation = () => {
-    window.open('https://buymeachai.ezee.li/clarte', '_blank');
+    window.open('https://buymeachai.ezee.li/Om_Verma', '_blank');
   };
 
   if (isLoading) {
